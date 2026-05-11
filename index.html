@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SafePath — Gordon College</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f6f0;--surface:#fff;--surface2:#f0f3eb;
+  --primary:#1a7a4a;--primary-dark:#135c37;--primary-light:#e8f5ee;
+  --accent:#d4af37;--accent-light:#fdf8e8;
+  --text:#1a2a1e;--text2:#4a6350;--text3:#7a9580;
+  --border:#d0ddd4;--border2:#b5cabb;
+  --danger:#dc3545;--danger-light:#fdeaea;
+  --info:#1d6fa4;--info-light:#e8f4fd;
+  --shadow:0 2px 12px rgba(0,0,0,.08);
+  --radius:12px;--radius-sm:8px;
+}
+body.dark-mode{
+  --bg:#0f1712;--surface:#17211b;--surface2:#101812;
+  --primary:#35b779;--primary-dark:#249260;--primary-light:#1b3528;
+  --accent:#e4bf4a;--accent-light:#332b14;
+  --text:#edf6ef;--text2:#bdd2c2;--text3:#8ca694;
+  --border:#2b4233;--border2:#3d5b47;
+  --danger:#f05261;--danger-light:#3a181d;
+  --info:#5daee3;--info-light:#142b3b;
+  --shadow:0 2px 14px rgba(0,0,0,.35);
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── OVERLAY ── */
+#overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f4d2a 0%,#1a7a4a 50%,#2d9e66 100%);display:flex;align-items:center;justify-content:center;z-index:999;padding:1rem}
+.auth-card{background:var(--surface);border-radius:20px;padding:2rem;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.25)}
+.auth-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:1.5rem}
+.auth-logo-circle{width:52px;height:52px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
+.auth-logo-text h1{font-size:22px;font-weight:700;color:var(--primary)}
+.auth-logo-text p{font-size:12px;color:var(--text2)}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:1.5rem}
+.auth-tab{flex:1;padding:.5rem;text-align:center;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);transition:.2s}
+.auth-tab.active{background:var(--primary);color:#fff}
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
+.role-option{padding:.65rem;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;text-align:center}
+.role-option.active{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+.role-note{font-size:11px;color:var(--text3);line-height:1.5;margin:-.35rem 0 .85rem}
+.auth-panel{display:none}
+.auth-panel.active{display:block}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.field input{width:100%;padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:.2s;background:var(--surface)}
+.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,122,74,.12)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.btn-primary{width:100%;padding:.75rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:.2s;margin-top:.5rem}
+.btn-primary:hover{background:var(--primary-dark)}
+.auth-divider{text-align:center;color:var(--text3);font-size:12px;margin:.75rem 0;position:relative}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.auth-divider::before{left:0}.auth-divider::after{right:0}
+.btn-google{width:100%;padding:.65rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text);font-weight:500;transition:.2s}
+.btn-google:hover{border-color:var(--border2);background:var(--surface2)}
+.auth-links{display:flex;justify-content:space-between;margin-top:.75rem}
+.auth-link{background:none;border:none;color:var(--primary);font-size:12px;cursor:pointer;text-decoration:underline}
+.terms-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;font-size:13px}
+.terms-row input{width:auto}
+.pwd-hint{font-size:11px;color:var(--text3);margin-bottom:.75rem;line-height:1.5}
+.badge-sdg{background:#e8623a;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--surface);border-radius:16px;padding:1.75rem;max-width:440px;width:100%;box-shadow:var(--shadow)}
+.modal-box h2{font-size:18px;font-weight:600;margin-bottom:.5rem}
+.modal-box p{font-size:13px;color:var(--text2);margin-bottom:1rem}
+.modal-actions{display:flex;gap:.75rem;margin-top:1rem}
+.btn-modal-primary{flex:1;padding:.65rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer}
+.btn-modal-secondary{flex:1;padding:.65rem;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer}
+.terms-list{padding-left:1.25rem;font-size:13px;color:var(--text2);line-height:2}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.show{display:flex}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px}
+.hdr-title{font-size:16px;font-weight:700;color:var(--primary)}
+.hdr-sub{font-size:11px;color:var(--text2)}
+.hdr-right{display:flex;align-items:center;gap:.5rem}
+.hdr-btn{padding:.4rem .8rem;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:.2s}
+.hdr-btn:hover{background:var(--surface2)}
+.theme-btn{width:34px;height:32px;padding:0;font-size:16px;display:inline-flex;align-items:center;justify-content:center}
+.btn-emergency{background:var(--danger)!important;color:#fff!important;border-color:var(--danger)!important}
+.btn-emergency.active{background:#8b0000!important;border-color:#8b0000!important;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.75}}
+.status-indicator{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.dot{width:8px;height:8px;border-radius:50%;background:#6b7280}
+.dot.online{background:#22c55e}.dot.busy{background:#f59e0b}.dot.dnd{background:#ef4444}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{background:var(--surface);border-top:1px solid var(--border);display:flex;position:sticky;bottom:0;z-index:100}
+.nav-item{flex:1;padding:.6rem .25rem;text-align:center;cursor:pointer;border:none;background:none;color:var(--text3);font-size:10px;font-weight:500;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-item.active{color:var(--primary)}
+.nav-item.active svg{stroke:var(--primary)}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto}
+.section{display:none;padding:1rem}
+.section.active{display:block}
+.section-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+.card-icon{width:28px;height:28px;border-radius:8px;background:var(--primary-light);display:flex;align-items:center;justify-content:center}
+.card-icon svg{width:16px;height:16px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Navigation section */
+.sel-group{margin-bottom:.75rem}
+.sel-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.sel-group select{width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);outline:none;cursor:pointer}
+.sel-group select:focus{border-color:var(--primary)}
+.sel-group select option,.sel-group select optgroup{background:var(--surface);color:var(--text)}
+body.dark-mode .sel-group select option,body.dark-mode .sel-group select optgroup{background:#17211b;color:#edf6ef}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-of-type{border-bottom:none}
+.toggle-label{font-size:13px;font-weight:600;color:var(--text)}
+.toggle-desc{font-size:11px;color:var(--text3)}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#d1d5db;border-radius:12px;cursor:pointer;transition:.2s}
+.slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--primary)}
+.switch input:checked+.slider::before{transform:translateX(20px)}
+.btn-find{width:100%;padding:.75rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:.2s;margin-top:.75rem}
+.btn-find:hover{background:var(--primary-dark)}
+.btn-clear{width:100%;padding:.6rem;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;margin-top:.5rem}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.75rem}
+.stat-card{background:var(--surface2);border-radius:var(--radius-sm);padding:.65rem .85rem}
+.stat-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:2px}
+.stat-value{font-size:16px;font-weight:700;color:var(--primary)}
+.exit-status-list{display:grid;gap:.6rem}
+.exit-status{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem}
+.exit-status.full{border-color:var(--danger);background:var(--danger-light)}
+.exit-status.warning{border-color:#f59e0b;background:#fff7ed}
+body.dark-mode .exit-status.warning{background:#33210d}
+.exit-status-top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.45rem}
+.exit-status-name{font-size:13px;font-weight:700;color:var(--text)}
+.exit-badge{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;background:#dcfce7;color:#166534;white-space:nowrap}
+.exit-badge.warning{background:#fef3c7;color:#92400e}
+.exit-badge.full{background:#fee2e2;color:#991b1b}
+.exit-meter{height:8px;background:var(--border);border-radius:999px;overflow:hidden;margin:.35rem 0}
+.exit-meter-fill{height:100%;background:var(--primary);border-radius:999px;transition:.2s}
+.exit-status.warning .exit-meter-fill{background:#f59e0b}
+.exit-status.full .exit-meter-fill{background:var(--danger)}
+.exit-status-meta{font-size:12px;color:var(--text2);display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.control-grid{display:grid;grid-template-columns:1fr;gap:.75rem}
+.control-row{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem}
+.control-main strong{display:block;font-size:13px;color:var(--text);margin-bottom:2px}
+.control-main span{font-size:12px;color:var(--text2)}
+.control-actions{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.mini-btn{padding:.4rem .55rem;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.mini-btn:hover{border-color:var(--primary);color:var(--primary)}
+.mini-btn.danger{border-color:#fca5a5;color:var(--danger)}
+.mini-btn.active{background:var(--danger);border-color:var(--danger);color:#fff}
+.incident-form{display:grid;grid-template-columns:1fr;gap:.65rem}
+.incident-form select,.incident-form textarea{width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);outline:none}
+.incident-form textarea{min-height:76px;resize:vertical;font-family:inherit}
+.incident-list{display:grid;gap:.55rem}
+.incident-item{background:var(--surface2);border-left:4px solid var(--danger);border-radius:var(--radius-sm);padding:.65rem .75rem;font-size:13px;color:var(--text2)}
+.incident-item strong{display:block;color:var(--text);margin-bottom:2px}
+.alert-strip{display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:var(--danger-light);border:1px solid #fca5a5;border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;color:var(--danger);font-size:13px;font-weight:700}
+.alert-strip.safe{background:var(--primary-light);border-color:var(--border2);color:var(--primary)}
+@media(min-width:760px){.control-grid{grid-template-columns:1fr 1fr}.incident-form{grid-template-columns:1fr 1fr}.incident-form textarea,.incident-form button{grid-column:1/-1}}
+.dashboard-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1rem}
+.dash-metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem}
+.dash-metric strong{display:block;font-size:20px;color:var(--primary);margin-bottom:2px}
+.dash-metric span{font-size:12px;color:var(--text2)}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.quick-btn{padding:.85rem;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.5rem;justify-content:center;transition:.2s}
+.quick-btn:hover{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+.directions-list{padding-left:1.25rem}
+.dir-item{font-size:13px;color:var(--text2);padding:.35rem 0;border-bottom:1px dotted var(--border)}
+.dir-item:last-child{border-bottom:none}
+.dir-empty{color:var(--text3);font-size:13px;font-style:italic;padding:.5rem 0}
+
+/* Map */
+.map-wrapper{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:1rem}
+.map-header{padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.map-header-title{font-size:13px;font-weight:600;color:var(--text)}
+.emergency-banner{background:var(--danger);color:#fff;text-align:center;font-size:12px;font-weight:600;padding:.5rem;display:none}
+.emergency-banner.show{display:block}
+canvas{display:block;width:100%;height:260px;cursor:crosshair}
+.map-legend{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .75rem;padding:.75rem 1rem;border-top:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.floor-selector{padding:.75rem 1rem;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);margin-bottom:1rem}
+.floor-btn{padding:.5rem;border:1.5px solid var(--border);background:var(--surface);color:var(--text);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+.floor-btn:hover{border-color:var(--primary);color:var(--primary)}
+.floor-btn.active-floor{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* Profile */
+.profile-header{display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--primary-light);border-radius:var(--radius);margin-bottom:1rem}
+.avatar{width:60px;height:60px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0}
+.profile-name{font-size:18px;font-weight:700;color:var(--primary)}
+.profile-email{font-size:13px;color:var(--text2)}
+.profile-badge{display:inline-flex;align-items:center;gap:4px;background:var(--primary);color:#fff;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:4px}
+.status-btns{display:flex;gap:.5rem}
+.status-btn{flex:1;padding:.5rem;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:.2s}
+.status-btn.active-online{background:#dcfce7;color:#166534;border-color:#86efac}
+.status-btn.active-busy{background:#fef9c3;color:#854d0e;border-color:#fde047}
+.status-btn.active-dnd{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.logout-btn{width:100%;padding:.65rem;border:1.5px solid #fca5a5;background:#fff;color:var(--danger);border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;margin-top:.75rem}
+.profile-edit-input{width:100%;padding:.5rem .75rem;border:1.5px solid var(--primary);border-radius:var(--radius-sm);font-size:13px;outline:none;background:var(--surface)}
+.profile-edit-input:focus{box-shadow:0 0 0 3px rgba(26,122,74,.12)}
+.btn-edit{padding:.4rem .75rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+.btn-edit:hover{background:var(--primary-dark)}
+.btn-save{padding:.65rem 1rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;flex:1;transition:.2s}
+.btn-save:hover{background:var(--primary-dark)}
+.btn-cancel{padding:.65rem 1rem;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;flex:1;transition:.2s}
+.btn-cancel:hover{background:var(--border)}
+
+/* Reports */
+.report-btns{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.report-btn{padding:.75rem;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:.2s;display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.report-btn:hover{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+.report-btn svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.report-preview{background:var(--surface2);border-radius:var(--radius-sm);padding:1rem;border:1px dashed var(--border2);min-height:120px;font-size:13px;color:var(--text3);display:flex;align-items:center;justify-content:center;text-align:center}
+
+/* Support */
+.faq-item{padding:.75rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:.5rem;cursor:pointer}
+.faq-q{font-size:13px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:center}
+.faq-a{font-size:12px;color:var(--text2);margin-top:.4rem;display:none;line-height:1.6}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-arr{transform:rotate(180deg)}
+.faq-arr{transition:.2s;font-size:14px}
+.support-card{background:var(--primary-light);border-radius:var(--radius);padding:1rem;text-align:center;border:1px solid var(--border2);margin-top:1rem}
+.support-card h3{font-size:15px;font-weight:600;color:var(--primary);margin-bottom:.35rem}
+.support-card p{font-size:12px;color:var(--text2)}
+
+/* Toast */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a2a1e;color:#fff;padding:.6rem 1.25rem;border-radius:20px;font-size:13px;font-weight:500;z-index:9999;display:none;white-space:nowrap}
+#toast.show{display:block}
+
+/* Responsive map canvas */
+@media(min-width:600px){canvas{height:340px}}
+</style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-circle">SP</div>
+      <div class="auth-logo-text">
+        <h1>SafePath</h1>
+        <p>Gordon College Campus Navigation</p>
+      </div>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="authTab('login',this)">Login</div>
+      <div class="auth-tab" onclick="authTab('register',this)">Register</div>
+    </div>
+
+    <div class="auth-panel active" id="panelLogin">
+      <div class="role-tabs">
+        <button class="role-option active" id="roleUser" onclick="setLoginRole('user')">Student / User</button>
+        <button class="role-option" id="roleAdmin" onclick="setLoginRole('admin')">Safety Admin</button>
+      </div>
+      <div class="role-note" id="roleNote">Users can navigate, report incidents, and use emergency routing.</div>
+      <div class="field"><label>Email / Student ID</label><input id="li_email" type="text" placeholder="e.g. 22-01234 or name@gordoncollege.edu.ph"/></div>
+      <div class="field"><label>Password</label><input id="li_pass" type="password" placeholder="Your password"/></div>
+      <button class="btn-primary" onclick="doLogin()">Login</button>
+      <div class="auth-links">
+        <button class="auth-link" onclick="openQR()">Login with QR</button>
+        <button class="auth-link" onclick="openReset()">Forgot password?</button>
+      </div>
+      <div class="auth-divider">or continue with</div>
+      <button class="btn-google" onclick="toast('Google login coming soon.')">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+
+    <div class="auth-panel" id="panelRegister">
+      <div class="field"><label>Full Name</label><input id="rg_name" type="text" placeholder="Juan dela Cruz"/></div>
+      <div class="field-row">
+        <div class="field"><label>Age</label><input id="rg_age" type="number" min="13" placeholder="18"/></div>
+        <div class="field"><label>Birthday</label><input id="rg_dob" type="date"/></div>
+      </div>
+      <div class="field"><label>Email</label><input id="rg_email" type="email" placeholder="student@gordoncollege.edu.ph"/></div>
+      <div class="field"><label>Phone</label><input id="rg_phone" type="tel" placeholder="+63 9XX XXX XXXX"/></div>
+      <div class="field"><label>Password</label><input id="rg_pass" type="password" placeholder="Min. 8 characters"/></div>
+      <div class="field"><label>Confirm Password</label><input id="rg_confirm" type="password" placeholder="Repeat password"/></div>
+      <div class="terms-row">
+        <input type="checkbox" id="termsCheck"/>
+        <span style="font-size:13px">I have read the <button class="auth-link" onclick="openTerms()">Terms & Conditions</button></span>
+      </div>
+      <div class="pwd-hint">Password: 8+ chars · uppercase · lowercase · number · special character</div>
+      <button class="btn-primary" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- TERMS MODAL -->
+<div class="modal-bg" id="mTerms">
+  <div class="modal-box">
+    <h2>Terms and Conditions</h2>
+    <p>Read carefully before registering for SafePath.</p>
+    <ol class="terms-list">
+      <li>This service is intended for Gordon College CCS BSCS2A campus use only.</li>
+      <li>Do not share your credentials. Your profile is linked to your student status.</li>
+      <li>Use SafePath only for campus navigation and safety reporting.</li>
+      <li>By agreeing, you consent to receive route and support notifications via email.</li>
+    </ol>
+    <div class="modal-actions">
+      <button class="btn-modal-primary" onclick="acceptTerms()">I Accept</button>
+      <button class="btn-modal-secondary" onclick="closeModal('mTerms')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- OTP MODAL -->
+<div class="modal-bg" id="mOtp">
+  <div class="modal-box">
+    <h2>Verify OTP</h2>
+    <p>A 6-digit code was sent to your email or phone. Enter it below to continue.</p>
+    <div class="field"><label>OTP Code</label><input id="otpInput" type="text" maxlength="6" placeholder="123456"/></div>
+    <div class="modal-actions">
+      <button class="btn-modal-primary" onclick="verifyOtp()">Verify</button>
+      <button class="btn-modal-secondary" onclick="closeModal('mOtp')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET MODAL -->
+<div class="modal-bg" id="mReset">
+  <div class="modal-box">
+    <h2>Forgot Password</h2>
+    <p>Enter your registered email or phone number. We'll send a reset code.</p>
+    <div class="field"><label>Email or Phone</label><input id="rst_contact" type="text" placeholder="email or +639..."/></div>
+    <div id="rst_step2" style="display:none">
+      <div class="field"><label>OTP Code</label><input id="rst_otp" type="text" maxlength="6" placeholder="6-digit code"/></div>
+      <div class="field"><label>New Password</label><input id="rst_new" type="password" placeholder="New password"/></div>
+      <div class="field"><label>Confirm Password</label><input id="rst_confirm" type="password" placeholder="Confirm"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-primary" id="rstBtn" onclick="resetStep()">Send Code</button>
+      <button class="btn-modal-secondary" onclick="closeModal('mReset')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div class="modal-bg" id="mQR">
+  <div class="modal-box" style="text-align:center">
+    <h2>Login with QR Code</h2>
+    <p>Scan this QR code using the SafePath mobile app or your student ID scanner.</p>
+    <div style="display:inline-block;background:#fff;padding:1rem;border:2px solid var(--border);border-radius:12px;margin:.75rem 0">
+      <svg width="120" height="120" viewBox="0 0 21 21">
+        <rect width="21" height="21" fill="#fff"/>
+        <g fill="#1a2a1e">
+          <rect x="1" y="1" width="7" height="7"/><rect x="2" y="2" width="5" height="5" fill="#fff"/><rect x="3" y="3" width="3" height="3"/>
+          <rect x="13" y="1" width="7" height="7"/><rect x="14" y="2" width="5" height="5" fill="#fff"/><rect x="15" y="3" width="3" height="3"/>
+          <rect x="1" y="13" width="7" height="7"/><rect x="2" y="14" width="5" height="5" fill="#fff"/><rect x="3" y="15" width="3" height="3"/>
+          <rect x="9" y="1" width="1" height="1"/><rect x="11" y="1" width="1" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="11" y="3" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="9" y="7" width="1" height="1"/>
+          <rect x="13" y="9" width="1" height="1"/><rect x="15" y="9" width="1" height="1"/><rect x="17" y="9" width="1" height="1"/><rect x="19" y="9" width="1" height="1"/><rect x="13" y="11" width="1" height="1"/><rect x="15" y="11" width="1" height="1"/><rect x="13" y="13" width="1" height="1"/><rect x="17" y="11" width="1" height="1"/><rect x="19" y="11" width="1" height="1"/><rect x="15" y="13" width="1" height="1"/><rect x="17" y="13" width="1" height="1"/><rect x="19" y="13" width="1" height="1"/><rect x="13" y="15" width="1" height="1"/><rect x="15" y="15" width="1" height="1"/><rect x="19" y="15" width="1" height="1"/><rect x="13" y="17" width="1" height="1"/><rect x="15" y="17" width="1" height="1"/><rect x="17" y="17" width="1" height="1"/><rect x="19" y="17" width="1" height="1"/><rect x="13" y="19" width="1" height="1"/>
+          <rect x="1" y="9" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="5" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/><rect x="1" y="11" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/><rect x="7" y="11" width="1" height="1"/><rect x="11" y="11" width="1" height="1"/><rect x="1" y="13" width="1" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="5" y="13" width="1" height="1"/><rect x="9" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/>
+        </g>
+      </svg>
+    </div>
+    <p style="font-size:12px;color:var(--text3)">Code expires in <span id="qrCountdown">5:00</span></p>
+    <div class="modal-actions">
+      <button class="btn-modal-secondary" style="flex:none;width:100%" onclick="closeModal('mQR')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="hdr-left">
+      <div class="hdr-logo">SP</div>
+      <div>
+        <div class="hdr-title">SafePath</div>
+        <div class="hdr-sub">Gordon College</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="badge-sdg">SDG 11</span>
+      <div class="status-indicator">
+        <div class="dot online" id="hdrDot"></div>
+        <span id="hdrStatus" style="font-size:11px;color:var(--text2)">Online</span>
+      </div>
+      <button class="hdr-btn theme-btn" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch to dark mode">🌙</button>
+      <button class="hdr-btn btn-emergency" id="emergBtn" onclick="toggleEmergency()">🚨 Emergency</button>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- DASHBOARD -->
+    <div class="section active" id="secDashboard">
+      <div style="padding:1rem 1rem 0">
+        <div class="section-title">Dashboard</div>
+        <div class="section-sub">SafePath guide for Gordon College emergency navigation</div>
+      </div>
+      <div style="padding:0 1rem">
+        <div class="dashboard-grid">
+          <div class="dash-metric"><strong>6</strong><span>Floors covered by the campus map</span></div>
+          <div class="dash-metric"><strong>24/7</strong><span>Emergency route access inside the app</span></div>
+          <div class="dash-metric"><strong>PWD</strong><span>Accessible routes can avoid stairs</span></div>
+          <div class="dash-metric"><strong>A*</strong><span>Optional faster path finding mode</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">What SafePath Does</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7">
+            SafePath helps students and staff locate rooms, offices, elevators, stairs, restrooms, gates, and emergency exits across multiple floors. During emergencies, choose your current location and tap Emergency so the system can route you to the nearest exit.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">How To Use The System</div>
+          <ol class="directions-list">
+            <li class="dir-item">Open Navigate and select your current location in From.</li>
+            <li class="dir-item">Select your destination in To, even if it is on another floor.</li>
+            <li class="dir-item">Turn on PWD Mode if you need a route that avoids stairs.</li>
+            <li class="dir-item">Tap Find Path, then use the floor buttons to inspect each route segment.</li>
+            <li class="dir-item">For emergencies, tap the red Emergency button to locate the nearest available exit.</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Quick Actions</div>
+          <div class="quick-grid">
+            <button class="quick-btn" onclick="goSec('Nav')">Navigate</button>
+            <button class="quick-btn" onclick="toggleEmergency()">Emergency</button>
+            <button class="quick-btn" id="quickControl" onclick="goSec('Control')">Control</button>
+            <button class="quick-btn" onclick="goSec('Reports')">Reports</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATE -->
+    <div class="section" id="secNav">
+      <div style="padding:1rem 1rem 0">
+        <div class="section-title">Navigate</div>
+        <div class="section-sub">Find the safest route across campus</div>
+      </div>
+      <div style="padding:0 1rem">
+        <div class="emergency-banner" id="emerBanner">🚨 EMERGENCY MODE — Routing to nearest exit</div>
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"/></svg></div>
+            Route Planner
+          </div>
+          <div class="sel-group"><label>From</label><select id="startSel"></select></div>
+          <div class="sel-group"><label>To</label><select id="endSel"></select></div>
+          <div style="margin:.75rem 0">
+            <div class="toggle-row">
+              <div><div class="toggle-label">PWD Mode</div><div class="toggle-desc">Avoids stairs · uses ramps</div></div>
+              <label class="switch"><input type="checkbox" id="pwdToggle" onchange="onPWD()"/><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">A* Algorithm</div><div class="toggle-desc" id="algoDesc">Dijkstra — guaranteed shortest</div></div>
+              <label class="switch"><input type="checkbox" id="algoToggle" onchange="onAlgo()"/><span class="slider"></span></label>
+            </div>
+          </div>
+          <button class="btn-find" onclick="findPath()">Find Path</button>
+          <button class="btn-clear" onclick="clearPath()">Clear Route</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Emergency Exit Status</div>
+          <div class="section-sub" id="exitSuggestion" style="margin-bottom:.75rem">Turn on Emergency Mode to route users away from full exits.</div>
+          <div class="exit-status-list" id="exitStatusList"></div>
+        </div>
+
+        <div class="map-wrapper">
+          <div class="map-header">
+            <span class="map-header-title">Campus Map — Gordon College</span>
+            <span style="font-size:11px;color:var(--text3)">Tap nodes to inspect</span>
+          </div>
+          <div class="floor-selector">
+            <label style="font-weight:600;font-size:13px;color:var(--text2);display:block;margin-bottom:8px">Floor Level</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <button class="floor-btn active-floor" onclick="selectFloor(1)">1F</button>
+              <button class="floor-btn" onclick="selectFloor(2)">2F</button>
+              <button class="floor-btn" onclick="selectFloor(3)">3F</button>
+              <button class="floor-btn" onclick="selectFloor(4)">4F</button>
+              <button class="floor-btn" onclick="selectFloor(5)">5F</button>
+              <button class="floor-btn" onclick="selectFloor(6)">6F</button>
+            </div>
+          </div>
+          <div class="emergency-banner" id="mapBanner"></div>
+          <canvas id="mapCanvas"></canvas>
+          <div class="map-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Building / Office</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Emergency Exit</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#f97316"></div>Stairs</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#38bdf8"></div>Elevator</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Accessible</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>Active Route</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#ec4899"></div>Start Point</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#14b8a6"></div>End Point</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#111827"></div>Blocked Area</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Route Info</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Algorithm</div><div class="stat-value" id="statAlgo">Dijkstra</div></div>
+            <div class="stat-card"><div class="stat-label">Distance</div><div class="stat-value" id="statDist">—</div></div>
+            <div class="stat-card"><div class="stat-label">Nodes Visited</div><div class="stat-value" id="statNodes">—</div></div>
+            <div class="stat-card"><div class="stat-label">Mode</div><div class="stat-value" id="statMode">Standard</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Turn-by-Turn Directions</div>
+          <ol class="directions-list" id="dirList">
+            <li class="dir-empty">Select a start and end point, then tap Find Path.</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Report Incident</div>
+          <div class="incident-form">
+            <select id="incidentType">
+              <option>Fire / Smoke</option>
+              <option>Blocked Hallway</option>
+              <option>Injury / Medical</option>
+              <option>Crowd Build-up</option>
+              <option>Power Outage</option>
+            </select>
+            <select id="incidentLocation"></select>
+            <textarea id="incidentNotes" placeholder="Short details for responders"></textarea>
+            <button class="btn-find" onclick="submitIncident()">Submit Incident Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="section" id="secProfile">
+      <div style="padding:1rem 1rem 0"><div class="section-title">Profile</div><div class="section-sub">Manage your account</div></div>
+      <div style="padding:0 1rem">
+        <div class="profile-header">
+          <div class="avatar" id="avatarCircle">JD</div>
+          <div>
+            <div class="profile-name" id="profName">Juan dela Cruz</div>
+            <div class="profile-email" id="profEmail">22-01234@gordoncollege.edu.ph</div>
+            <div class="profile-badge">BSCS 2A · Student</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Status</div>
+          <div class="status-btns">
+            <button class="status-btn active-online" id="sOnline" onclick="setStatus('Online')">🟢 Online</button>
+            <button class="status-btn" id="sBusy" onclick="setStatus('Busy')">🟡 Busy</button>
+            <button class="status-btn" id="sDnd" onclick="setStatus('DND')">🔴 DND</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <div class="card-title">Account Details</div>
+            <button class="btn-edit" id="editBtn" onclick="toggleEditMode()">✎ Edit</button>
+          </div>
+          <div style="font-size:13px;color:var(--text2);line-height:2.2">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:4px;align-items:center">
+              <span>Full Name</span>
+              <span id="dtNameView" style="color:var(--text);font-weight:500;display:block">Juan dela Cruz</span>
+              <input type="text" id="dtNameEdit" value="Juan dela Cruz" class="profile-edit-input" style="display:none"/>
+            </div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:4px;align-items:center">
+              <span>Student ID</span>
+              <span id="dtIdView" style="color:var(--text);font-weight:500;display:block">22-01234</span>
+              <input type="text" id="dtIdEdit" value="22-01234" class="profile-edit-input" style="display:none"/>
+            </div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:4px;align-items:center">
+              <span>Program</span>
+              <span id="dtProgramView" style="color:var(--text);font-weight:500;display:block">BSCS 2A</span>
+              <input type="text" id="dtProgramEdit" value="BSCS 2A" class="profile-edit-input" style="display:none"/>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span>Member Since</span>
+              <span id="dtMemberView" style="color:var(--text);font-weight:500;display:block">May 2026</span>
+              <input type="text" id="dtMemberEdit" value="May 2026" class="profile-edit-input" style="display:none"/>
+            </div>
+          </div>
+          <div id="editActions" style="display:none;margin-top:1rem;display:flex;gap:0.75rem">
+            <button class="btn-save" onclick="saveProfileChanges()">Save Changes</button>
+            <button class="btn-cancel" onclick="toggleEditMode()">Cancel</button>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="section" id="secReports">
+      <div style="padding:1rem 1rem 0"><div class="section-title">Reports</div><div class="section-sub">View your navigation history</div></div>
+      <div style="padding:0 1rem">
+        <div class="card">
+          <div class="card-title">Generate Report</div>
+          <div class="report-btns">
+            <button class="report-btn" onclick="genReport('weekly')">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              Weekly Report
+            </button>
+            <button class="report-btn" onclick="genReport('monthly')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Monthly Report
+            </button>
+          </div>
+          <div class="report-preview" id="reportPreview">Select a report type to generate a summary.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recent Activity</div>
+          <div id="activityList" style="font-size:13px;color:var(--text2)">
+            <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)"><span>Gate 1 → CCS Building</span><span style="color:var(--text3)">Today 8:22 AM</span></div>
+            <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)"><span>Library → Admin Building</span><span style="color:var(--text3)">Yesterday 2:10 PM</span></div>
+            <div style="display:flex;justify-content:space-between;padding:.4rem 0"><span>Canteen → Gym</span><span style="color:var(--text3)">May 6, 10:45 AM</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROL CENTER -->
+    <div class="section" id="secControl">
+      <div style="padding:1rem 1rem 0"><div class="section-title">Control Center</div><div class="section-sub">Admin tools for emergency simulation and route safety</div></div>
+      <div style="padding:0 1rem">
+        <div class="alert-strip safe" id="systemAlert">
+          <span>System status: Normal monitoring</span>
+          <button class="mini-btn" onclick="clearSimulation()">Reset</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Emergency Simulation</div>
+          <div class="quick-grid">
+            <button class="quick-btn" onclick="runSimulation('fire')">Simulate Fire</button>
+            <button class="quick-btn" onclick="runSimulation('earthquake')">Earthquake Drill</button>
+            <button class="quick-btn" onclick="runSimulation('crowd')">Crowd Surge</button>
+            <button class="quick-btn" onclick="runSimulation('clear')">Clear Scenario</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Live Exit Capacity</div>
+          <div class="control-grid" id="adminExitControls"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Blocked Paths / Closed Areas</div>
+          <div class="control-grid" id="blockedControls"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Incident Log</div>
+          <div class="incident-list" id="incidentList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPPORT -->
+    <div class="section" id="secSupport">
+      <div style="padding:1rem 1rem 0"><div class="section-title">Support & FAQ</div><div class="section-sub">Help and frequently asked questions</div></div>
+      <div style="padding:0 1rem">
+        <div class="card">
+          <div class="card-title">Frequently Asked Questions</div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">How do I find a route? <span class="faq-arr">▾</span></div>
+            <div class="faq-a">Go to the Navigate tab. Select your starting point and destination from the dropdowns, then tap Find Path. The shortest route will be highlighted on the map.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">What is PWD Mode? <span class="faq-arr">▾</span></div>
+            <div class="faq-a">PWD (Person with Disability) Mode recalculates your route to avoid stairs and prioritize ramps and elevators, ensuring an accessible path across campus.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">What is Emergency Mode? <span class="faq-arr">▾</span></div>
+            <div class="faq-a">Emergency Mode checks how many people are already assigned to each exit. If the nearest exit is full, SafePath suggests another available way.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">What is A* vs Dijkstra? <span class="faq-arr">▾</span></div>
+            <div class="faq-a">Dijkstra's algorithm guarantees the absolute shortest path. A* uses a heuristic (estimated distance to the goal) to find paths faster, but may not always be the shortest. Both are good options.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">I forgot my password. What do I do? <span class="faq-arr">▾</span></div>
+            <div class="faq-a">On the login screen, tap "Forgot password?" and enter your registered email or phone number. You will receive a one-time code to reset your password.</div>
+          </div>
+        </div>
+        <div class="support-card">
+          <h3>Still need help?</h3>
+          <p>Contact the CCS department or email the SafePath team at safepath@gordoncollege.edu.ph</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="navDashboard" onclick="goSec('Dashboard')">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 21h8v-6H3z"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" id="navNav" onclick="goSec('Nav')">
+      <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+      Navigate
+    </button>
+    <button class="nav-item" id="navProfile" onclick="goSec('Profile')">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </button>
+    <button class="nav-item" id="navReports" onclick="goSec('Reports')">
+      <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+      Reports
+    </button>
+    <button class="nav-item" id="navControl" onclick="goSec('Control')">
+      <svg viewBox="0 0 24 24"><path d="M12 2l7 4v5c0 5-3 9-7 11-4-2-7-6-7-11V6z"/><path d="M9 12l2 2 4-5"/></svg>
+      Control
+    </button>
+    <button class="nav-item" id="navSupport" onclick="goSec('Support')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Support
+    </button>
+  </nav>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let currentFloor=1;const NODES={
+  'Main Gate':{x:.08,y:.5,type:'entrance',floor:1},
+  'Gate 2':{x:.08,y:.25,type:'entrance',floor:1},
+  'Emergency Exit 1F':{x:.92,y:.2,type:'exit',floor:1,name:'Exit'},
+  'Fire Exit 1F':{x:.92,y:.32,type:'exit',floor:1,name:'Fire Exit'},
+  'Elevator 1F':{x:.4,y:.35,type:'elevator',floor:1,name:'Elevator'},
+  'Stairs 1F':{x:.6,y:.42,type:'stairs',floor:1,name:'Stairs'},
+  'Canteen 1F':{x:.28,y:.75,type:'building',floor:1,name:'Canteen'},
+  'CR 1F':{x:.18,y:.65,type:'building',floor:1,name:'CR'},
+  'Registrar 1F':{x:.18,y:.3,type:'building',floor:1,name:'Registrar'},
+  'Admin Office 1F':{x:.28,y:.22,type:'building',floor:1,name:'Admin Room'},
+  'Room 101':{x:.6,y:.2,type:'building',floor:1,name:'Room 101'},
+  'Room 102':{x:.6,y:.55,type:'building',floor:1,name:'Room 102'},
+
+  'Coop 2F':{x:.25,y:.75,type:'building',floor:2,name:'Coop'},
+  'CR 2F':{x:.2,y:.55,type:'building',floor:2,name:'CR'},
+  'Faculty 2F':{x:.5,y:.22,type:'building',floor:2,name:'Faculty Office'},
+  'Room 201':{x:.65,y:.15,type:'building',floor:2,name:'Room 201'},
+  'Room 202':{x:.65,y:.45,type:'building',floor:2,name:'Room 202'},
+  'Fire Exit 2F':{x:.92,y:.2,type:'exit',floor:2,name:'Fire Exit'},
+  'Elevator 2F':{x:.4,y:.35,type:'elevator',floor:2,name:'Elevator'},
+  'Stairs 2F':{x:.6,y:.42,type:'stairs',floor:2,name:'Stairs'},
+
+  'Room 301':{x:.25,y:.25,type:'building',floor:3,name:'Room 301'},
+  'Room 302':{x:.25,y:.55,type:'building',floor:3,name:'Room 302'},
+  'Faculty 3F':{x:.5,y:.22,type:'building',floor:3,name:'Faculty Office'},
+  'Function Hall 3F':{x:.7,y:.35,type:'building',floor:3,name:'Function Hall'},
+  'CR 3F':{x:.25,y:.75,type:'building',floor:3,name:'CR'},
+  'Elevator 3F':{x:.4,y:.35,type:'elevator',floor:3,name:'Elevator'},
+  'Stairs 3F':{x:.6,y:.42,type:'stairs',floor:3,name:'Stairs'},
+
+  'Room 401':{x:.2,y:.2,type:'building',floor:4,name:'Room 401'},
+  'Room 402':{x:.2,y:.55,type:'building',floor:4,name:'Room 402'},
+  'CR 4F':{x:.3,y:.75,type:'building',floor:4,name:'CR'},
+  'Fire Exit 4F':{x:.92,y:.2,type:'exit',floor:4,name:'Fire Exit'},
+  'Stairs 4F':{x:.6,y:.42,type:'stairs',floor:4,name:'Stairs'},
+  'Elevator 4F':{x:.4,y:.35,type:'elevator',floor:4,name:'Elevator'},
+  'Library 4F':{x:.7,y:.65,type:'building',floor:4,name:'Library'},
+
+  'Room 501':{x:.2,y:.25,type:'building',floor:5,name:'Room 501'},
+  'Room 502':{x:.2,y:.55,type:'building',floor:5,name:'Room 502'},
+  'CR 5F':{x:.3,y:.75,type:'building',floor:5,name:'CR'},
+  'Fire Exit 5F':{x:.92,y:.2,type:'exit',floor:5,name:'Fire Exit'},
+  'Stairs 5F':{x:.6,y:.42,type:'stairs',floor:5,name:'Stairs'},
+  'Elevator 5F':{x:.4,y:.35,type:'elevator',floor:5,name:'Elevator'},
+
+  'Lab 6F':{x:.2,y:.25,type:'building',floor:6,name:'Laboratory'},
+  'Room 601':{x:.2,y:.55,type:'building',floor:6,name:'Room 601'},
+  'CR 6F':{x:.3,y:.75,type:'building',floor:6,name:'CR'},
+  'Fire Exit 6F':{x:.92,y:.2,type:'exit',floor:6,name:'Fire Exit'},
+  'Elevator 6F':{x:.4,y:.35,type:'elevator',floor:6,name:'Elevator'},
+  'Stairs 6F':{x:.6,y:.42,type:'stairs',floor:6,name:'Stairs'},
+};
+
+const EDGES=[
+  ['Main Gate','Registrar 1F',30],['Registrar 1F','Admin Office 1F',25],['Admin Office 1F','Canteen 1F',30],
+  ['Admin Office 1F','Elevator 1F',20],['Admin Office 1F','Stairs 1F',20],['Canteen 1F','CR 1F',25],
+  ['Canteen 1F','Room 101',25],['Room 101','Room 102',20],['Room 102','Fire Exit 1F',35],
+  ['Stairs 1F','Room 102',15],['Elevator 1F','Room 101',20],['Main Gate','Emergency Exit 1F',50],['Gate 2','Registrar 1F',35],
+
+  ['Coop 2F','CR 2F',25],['CR 2F','Faculty 2F',20],['Faculty 2F','Room 201',25],['Faculty 2F','Room 202',25],
+  ['CR 2F','Elevator 2F',20],['CR 2F','Stairs 2F',20],['Room 202','Fire Exit 2F',35],['Coop 2F','Elevator 2F',25],
+
+  ['Room 301','Room 302',20],['Room 301','CR 3F',25],['Room 302','Function Hall 3F',25],
+  ['CR 3F','Faculty 3F',20],['Faculty 3F','Elevator 3F',20],['Elevator 3F','Stairs 3F',20],
+
+  ['Room 401','Room 402',20],['Room 401','CR 4F',25],['Room 402','Library 4F',25],
+  ['CR 4F','Elevator 4F',20],['Elevator 4F','Stairs 4F',20],['Room 402','Fire Exit 4F',35],
+
+  ['Room 501','Room 502',20],['Room 501','CR 5F',25],['Room 502','Elevator 5F',20],['CR 5F','Elevator 5F',20],
+  ['Elevator 5F','Stairs 5F',20],['Room 502','Fire Exit 5F',35],
+
+  ['Lab 6F','Room 601',25],['Room 601','CR 6F',25],['CR 6F','Elevator 6F',20],['Elevator 6F','Stairs 6F',20],
+  ['Room 601','Fire Exit 6F',35],
+
+  ['Elevator 1F','Elevator 2F',10],['Elevator 2F','Elevator 3F',10],['Elevator 3F','Elevator 4F',10],
+  ['Elevator 4F','Elevator 5F',10],['Elevator 5F','Elevator 6F',10],
+  ['Stairs 1F','Stairs 2F',10],['Stairs 2F','Stairs 3F',10],['Stairs 3F','Stairs 4F',10],
+  ['Stairs 4F','Stairs 5F',10],['Stairs 5F','Stairs 6F',10],
+];
+
+const PWD_AVOID=['Stairs 1F','Stairs 2F','Stairs 3F','Stairs 4F','Stairs 5F','Stairs 6F'];
+
+const EXIT_CAPACITY={
+  'Emergency Exit 1F':{count:38,capacity:45},
+  'Fire Exit 1F':{count:51,capacity:50},
+  'Fire Exit 2F':{count:42,capacity:50},
+  'Fire Exit 4F':{count:34,capacity:45},
+  'Fire Exit 5F':{count:47,capacity:50},
+  'Fire Exit 6F':{count:28,capacity:45}
+};
+
+const BLOCKABLE_NODES=['Fire Exit 1F','Fire Exit 2F','Fire Exit 4F','Fire Exit 5F','Fire Exit 6F','Stairs 2F','Stairs 3F','Stairs 4F','Elevator 4F','Room 302','Function Hall 3F'];
+let blockedNodes=new Set();
+let incidents=[
+  {type:'Crowd Build-up',location:'Fire Exit 1F',notes:'Exit is already over safe capacity.',time:'Today 8:41 AM',status:'Monitoring'},
+  {type:'Safety Check',location:'Stairs 3F',notes:'Responder inspected stairwell access.',time:'Today 8:10 AM',status:'Resolved'}
+];
+const ADMIN_ACCOUNTS=[
+  {email:'admin@safepath.local',password:'admin123',name:'Safety Admin'}
+];
+
+let currentPath=[];let emergencyMode=false;let currentStatus='Online';
+let userName='Juan dela Cruz';let userEmail='22-01234@gordoncollege.edu.ph';let loginRole='user';let currentRole='user';
+
+function authTab(id,el){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.auth-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
+}
+
+function setLoginRole(role){
+  loginRole=role;
+  document.getElementById('roleUser').classList.toggle('active',role==='user');
+  document.getElementById('roleAdmin').classList.toggle('active',role==='admin');
+  document.getElementById('roleNote').textContent=role==='admin'
+    ? 'Safety Admin access is restricted to approved accounts only.'
+    : 'Users can navigate, report incidents, and use emergency routing.';
+  document.getElementById('li_email').placeholder=role==='admin'
+    ? 'admin@safepath.local'
+    : 'e.g. 22-01234 or name@gordoncollege.edu.ph';
+}
+
+function doLogin(){
+  const e=document.getElementById('li_email').value.trim();
+  const p=document.getElementById('li_pass').value;
+  if(!e||!p){toast('Please enter email and password.');return;}
+  if(loginRole==='admin'){
+    const admin=ADMIN_ACCOUNTS.find(acc=>acc.email.toLowerCase()===e.toLowerCase()&&acc.password===p);
+    if(!admin){toast('Admin access denied. Use an approved Safety Admin account.');return;}
+    launchApp(admin.name,admin.email,'admin');
+    return;
+  }
+  if(e==='demo'&&p==='demo'){launchApp('Demo User','demo@gordoncollege.edu.ph','user');return;}
+  toast('Sending OTP…');
+  setTimeout(()=>{
+    openModal('mOtp');
+    document.getElementById('otpInput').dataset.action='login';
+    document.getElementById('otpInput').dataset.email=e;
+    document.getElementById('otpInput').dataset.role='user';
+  },800);
+}
+
+function verifyOtp(){
+  const v=document.getElementById('otpInput').value;
+  if(v.length!==6){toast('Enter the 6-digit code.');return;}
+  closeModal('mOtp');
+  const e=document.getElementById('otpInput').dataset.email||'student@gordoncollege.edu.ph';
+  const name=e.split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  launchApp(name,e,'user');
+}
+
+function doRegister(){
+  const name=document.getElementById('rg_name').value.trim();
+  const email=document.getElementById('rg_email').value.trim();
+  const pass=document.getElementById('rg_pass').value;
+  const confirm=document.getElementById('rg_confirm').value;
+  if(!name||!email){toast('Please fill in all required fields.');return;}
+  if(pass!==confirm){toast('Passwords do not match.');return;}
+  if(!document.getElementById('termsCheck').checked){toast('Please accept the Terms & Conditions.');return;}
+  const re=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+  if(!re.test(pass)){toast('Password does not meet the requirements.');return;}
+  toast('Sending OTP…');
+  setTimeout(()=>{
+    openModal('mOtp');
+    document.getElementById('otpInput').dataset.action='register';
+    document.getElementById('otpInput').dataset.email=email;
+    document.getElementById('otpInput').dataset.name=name;
+  },800);
+}
+
+function launchApp(name,email,role='user'){
+  userName=name;userEmail=email;currentRole=role;
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('profName').textContent=name;
+  document.getElementById('profEmail').textContent=email;
+  document.getElementById('dtNameView').textContent=name;
+  document.getElementById('dtNameEdit').value=name;
+  document.getElementById('dtIdView').textContent=email.split('@')[0];
+  document.getElementById('dtIdEdit').value=email.split('@')[0];
+  document.querySelector('.profile-badge').textContent=role==='admin'?'Safety Admin':'BSCS 2A Â· Student';
+  document.getElementById('navControl').style.display=role==='admin'?'flex':'none';
+  document.getElementById('quickControl').style.display=role==='admin'?'flex':'none';
+  document.getElementById('avatarCircle').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  initMap();
+  populateSelects();
+  goSec('Dashboard');
+}
+
+function doLogout(){
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('overlay').style.display='flex';
+  currentPath=[];emergencyMode=false;
+  currentRole='user';
+  setLoginRole('user');
+  document.getElementById('emergBtn').classList.remove('active');
+}
+
+let qrCountdownTimer=null;
+function startQRCountdown(){
+  if(qrCountdownTimer)clearInterval(qrCountdownTimer);
+  let timeLeft=300;
+  const updateDisplay=()=>{
+    const min=Math.floor(timeLeft/60);
+    const sec=(timeLeft%60).toString().padStart(2,'0');
+    document.getElementById('qrCountdown').textContent=`${min}:${sec}`;
+    if(timeLeft===30){document.getElementById('qrCountdown').style.color='#dc3545';}
+    if(timeLeft===0){
+      clearInterval(qrCountdownTimer);
+      document.getElementById('qrCountdown').textContent='EXPIRED';
+      document.getElementById('qrCountdown').style.color='#dc3545';
+      return;
+    }
+    timeLeft--;
+  };
+  updateDisplay();
+  qrCountdownTimer=setInterval(updateDisplay,1000);
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(id==='mQR'&&qrCountdownTimer){clearInterval(qrCountdownTimer);qrCountdownTimer=null;document.getElementById('qrCountdown').style.color='inherit';document.getElementById('qrCountdown').textContent='5:00';}
+}
+function openTerms(){openModal('mTerms');}
+function acceptTerms(){document.getElementById('termsCheck').checked=true;closeModal('mTerms');}
+function openReset(){openModal('mReset');}
+let resetStep1=true;
+function resetStep(){
+  if(resetStep1){
+    const c=document.getElementById('rst_contact').value.trim();
+    if(!c){toast('Enter your email or phone.');return;}
+    document.getElementById('rst_step2').style.display='block';
+    document.getElementById('rstBtn').textContent='Reset Password';
+    resetStep1=false;toast('OTP sent!');
+  } else {
+    const otp=document.getElementById('rst_otp').value;
+    const np=document.getElementById('rst_new').value;
+    const cp=document.getElementById('rst_confirm').value;
+    if(otp.length!==6){toast('Enter the 6-digit OTP.');return;}
+    if(np!==cp){toast('Passwords do not match.');return;}
+    closeModal('mReset');toast('Password reset successfully!');
+    resetStep1=true;document.getElementById('rst_step2').style.display='none';
+    document.getElementById('rstBtn').textContent='Send Code';
+  }
+}
+function openQR(){openModal('mQR');startQRCountdown();}
+
+function goSec(name){
+  if(name==='Control'&&currentRole!=='admin'){
+    toast('Control Center is for Safety Admin only.');
+    name='Dashboard';
+  }
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav'+name).classList.add('active');
+  if(name==='Nav'){
+    setTimeout(()=>{
+      if(canvas)resizeCanvas();
+      drawMap();
+    },50);
+  }
+  if(name==='Control'){refreshSafetyUI();}
+}
+
+function toast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function populateSelects(){
+  const keys=Object.keys(NODES).filter(k=>NODES[k].floor===currentFloor);
+  ['startSel','endSel'].forEach((id,i)=>{
+    const sel=document.getElementById(id);
+    sel.innerHTML='<option value="">— Select location —</option>';
+    keys.forEach(k=>{
+      const displayName=NODES[k].name||k;
+      sel.innerHTML+=`<option value="${k}">${displayName}</option>`;
+    });
+    if(i===0){
+      const startDefault=keys.find(k=>k.includes('Main Gate')||k.includes('Gate'));
+      if(startDefault)sel.value=startDefault;
+    }
+    if(i===1){
+      const endDefault=keys.find(k=>k.includes('Library')||k.includes('CCS'));
+      if(endDefault)sel.value=endDefault;
+    }
+  });
+}
+
+function selectFloor(floor){
+  currentFloor=floor;
+  document.querySelectorAll('.floor-btn').forEach((btn,idx)=>{
+    if(idx+1 === floor){
+      btn.classList.add('active-floor');
+    }else{
+      btn.classList.remove('active-floor');
+    }
+  });
+  populateSelects();
+  clearPath();
+  drawMap();
+}
+
+let canvas,ctx,W,H;
+function initMap(){
+  canvas=document.getElementById('mapCanvas');
+  ctx=canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize',()=>{resizeCanvas();drawMap();});
+  drawMap();
+}
+function resizeCanvas(){
+  const rect=canvas.parentElement.getBoundingClientRect();
+  W=canvas.width=rect.width;
+  H=canvas.height=parseInt(getComputedStyle(canvas).height)||260;
+}
+function nodePos(k){return{x:NODES[k].x*W,y:NODES[k].y*H};}
+
+function drawMap(){
+  if(!ctx)return;
+  if(!W||!H)resizeCanvas();
+  if(!W||!H)return;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=cssVar('--surface2');ctx.fillRect(0,0,W,H);
+
+  // Draw floor title
+  ctx.fillStyle=cssVar('--text');ctx.font='12px Segoe UI,sans-serif';ctx.textAlign='right';
+  const floorLabel=currentFloor===0?'Ground Floor':`Floor ${currentFloor}`;
+  ctx.fillText(floorLabel,W-10,20);
+
+  // Draw decorative grid
+  ctx.strokeStyle=cssVar('--border');ctx.lineWidth=1;
+  for(let x=40;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=40;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const pathSet=new Set();
+  for(let i=1;i<currentPath.length;i++){pathSet.add(currentPath[i-1]+'|'+currentPath[i]);pathSet.add(currentPath[i]+'|'+currentPath[i-1]);}
+
+  // Filter and draw edges for current floor
+  EDGES.forEach(([a,b])=>{
+    const nodeA=NODES[a],nodeB=NODES[b];
+    if(!nodeA||!nodeB)return;
+    if(nodeA.floor!==currentFloor&&nodeB.floor!==currentFloor)return;
+    if(nodeA.floor!==currentFloor||nodeB.floor!==currentFloor)return; // Don't show inter-floor connections visually
+    
+    const pa=nodePos(a),pb=nodePos(b);
+    const inPath=pathSet.has(a+'|'+b);
+    ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);
+    ctx.strokeStyle=inPath?'#f59e0b':cssVar('--border2');
+    ctx.lineWidth=inPath?4:2;
+    ctx.setLineDash(inPath?[]:[4,3]);
+    ctx.stroke();ctx.setLineDash([]);
+  });
+
+  // Filter and draw nodes for current floor
+  Object.entries(NODES).forEach(([k,v])=>{
+    if(v.floor!==currentFloor)return;
+    const {x,y}=nodePos(k);
+    const isStart=currentPath[0]===k,isEnd=currentPath[currentPath.length-1]===k;
+    const inPath=currentPath.includes(k);
+    const colors={building:'#3b82f6',exit:'#ef4444',stairs:'#f97316',elevator:'#38bdf8',accessible:'#22c55e',entrance:'#8b5cf6'};
+    let col=colors[v.type]||'#888';
+    if(blockedNodes.has(k))col='#111827';
+    if(isStart)col='#ec4899';else if(isEnd)col='#14b8a6';else if(inPath)col='#f59e0b';
+    ctx.beginPath();ctx.arc(x,y,inPath?9:7,0,Math.PI*2);
+    ctx.fillStyle=col;ctx.fill();
+    ctx.strokeStyle=cssVar('--surface');ctx.lineWidth=2;ctx.stroke();
+    if(blockedNodes.has(k)){
+      ctx.strokeStyle=cssVar('--danger');ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(x-9,y-9);ctx.lineTo(x+9,y+9);ctx.moveTo(x+9,y-9);ctx.lineTo(x-9,y+9);ctx.stroke();
+    }
+    ctx.fillStyle=cssVar('--text');ctx.font=`bold ${Math.max(9,W/70)}px Segoe UI,sans-serif`;
+    ctx.textAlign='center';
+    const displayName=v.name||k;
+    const label=displayName.length>12?displayName.substring(0,11)+'…':displayName;
+    ctx.fillText(label,x,y+(inPath?9:7)+12);
+    if(v.type==='exit'){
+      const load=exitLoad(k);
+      ctx.font=`bold ${Math.max(8,W/82)}px Segoe UI,sans-serif`;
+      ctx.fillStyle=load.full?cssVar('--danger'):(load.warning?'#f59e0b':cssVar('--primary'));
+      ctx.fillText(`${load.count}/${load.capacity}`,x,y+(inPath?9:7)+25);
+    }
+  });
+}
+
+function dijkstra(start,end,usePWD,useAStar){
+  if(blockedNodes.has(start)||blockedNodes.has(end))return null;
+  const keys=Object.keys(NODES);
+  const graph={};
+  keys.forEach(k=>{graph[k]={};});
+  EDGES.forEach(([a,b,w])=>{
+    if(usePWD&&(PWD_AVOID.includes(a)||PWD_AVOID.includes(b)))return;
+    if(blockedNodes.has(a)||blockedNodes.has(b))return;
+    graph[a][b]=w;graph[b][a]=w;
+  });
+  const dist={},prev={},visited=new Set();
+  keys.forEach(k=>{dist[k]=Infinity;prev[k]=null;});
+  dist[start]=0;
+  const pq=[...keys];
+  let nodesVisited=0;
+  while(pq.length){
+    pq.sort((a,b)=>{
+      let da=dist[a],db=dist[b];
+      if(useAStar){
+        const ea=NODES[end]?Math.hypot((NODES[a].x-NODES[end].x),(NODES[a].y-NODES[end].y))*100:0;
+        const eb=NODES[end]?Math.hypot((NODES[b].x-NODES[end].x),(NODES[b].y-NODES[end].y))*100:0;
+        da+=ea;db+=eb;
+      }
+      return da-db;
+    });
+    const u=pq.shift();
+    if(dist[u]===Infinity)break;
+    visited.add(u);nodesVisited++;
+    if(u===end)break;
+    Object.entries(graph[u]).forEach(([nb,w])=>{
+      if(!visited.has(nb)&&dist[u]+w<dist[nb]){dist[nb]=dist[u]+w;prev[nb]=u;}
+    });
+  }
+  const path=[];let cur=end;
+  while(cur){path.unshift(cur);cur=prev[cur];}
+  return path[0]===start?{path,dist:dist[end],visited:nodesVisited}:null;
+}
+
+function findPath(){
+  const s=document.getElementById('startSel').value;
+  const e=document.getElementById('endSel').value;
+  if(!s||!e){toast('Please select both start and end locations.');return;}
+  if(s===e){toast('Start and end cannot be the same.');return;}
+  const pwd=document.getElementById('pwdToggle').checked;
+  const algo=document.getElementById('algoToggle').checked;
+  const result=dijkstra(s,e,pwd,algo);
+  if(!result){toast('No path found. Try disabling PWD Mode.');return;}
+  currentPath=result.path;
+  document.getElementById('statAlgo').textContent=algo?'A*':'Dijkstra';
+  document.getElementById('statDist').textContent=result.dist+'m';
+  document.getElementById('statNodes').textContent=result.visited;
+  document.getElementById('statMode').textContent=pwd?'PWD':'Standard';
+  const dl=document.getElementById('dirList');
+  dl.innerHTML='';
+  result.path.forEach((node,i)=>{
+    const li=document.createElement('li');
+    li.className='dir-item';
+    li.textContent=i===0?`Start at ${node}`:i===result.path.length-1?`Arrive at ${node}`:`Continue to ${node}`;
+    dl.appendChild(li);
+  });
+  drawMap();
+  toast(`Route found! ${result.dist}m via ${result.path.length} stops.`);
+}
+
+function clearPath(){
+  currentPath=[];
+  document.getElementById('statAlgo').textContent='Dijkstra';
+  document.getElementById('statDist').textContent='—';
+  document.getElementById('statNodes').textContent='—';
+  document.getElementById('statMode').textContent='Standard';
+  document.getElementById('dirList').innerHTML='<li class="dir-empty">Select a start and end point, then tap Find Path.</li>';
+  drawMap();
+}
+
+function onPWD(){const v=document.getElementById('pwdToggle').checked;toast(v?'PWD Mode on — stairs avoided.':'PWD Mode off.');}
+function onAlgo(){
+  const v=document.getElementById('algoToggle').checked;
+  document.getElementById('algoDesc').textContent=v?'A* — heuristic, faster search':'Dijkstra — guaranteed shortest';
+  document.getElementById('statAlgo').textContent=v?'A*':'Dijkstra';
+}
+
+function toggleEmergency(){
+  emergencyMode=!emergencyMode;
+  const btn=document.getElementById('emergBtn');
+  const banner=document.getElementById('emerBanner');
+  btn.classList.toggle('active',emergencyMode);
+  banner.classList.toggle('show',emergencyMode);
+  if(emergencyMode){
+    const exits=Object.keys(NODES).filter(k=>NODES[k].type==='exit');
+    let best=null,bestDist=Infinity;
+    const start=document.getElementById('startSel').value||'Main Gate';
+    exits.forEach(exit=>{
+      const r=dijkstra(start,exit,false,false);
+      if(r&&r.dist<bestDist){bestDist=r.dist;best=r;}
+    });
+    if(best){
+      currentPath=best.path;
+      document.getElementById('statDist').textContent=bestDist+'m';
+      drawMap();
+      toast('🚨 Emergency route to nearest exit!',3500);
+    }
+  } else {
+    clearPath();banner.textContent='';
+    toast('Emergency mode deactivated.');
+  }
+}
+
+function setStatus(s){
+  currentStatus=s;
+  document.getElementById('hdrDot').className='dot '+(s==='Online'?'online':s==='Busy'?'busy':'dnd');
+  document.getElementById('hdrStatus').textContent=s;
+  ['Online','Busy','DND'].forEach(st=>{
+    const btn=document.getElementById('s'+st.charAt(0).toUpperCase()+st.slice(1).toLowerCase().replace('dn','Dn'));
+    if(btn)btn.className='status-btn';
+  });
+  const map={Online:'sOnline',Busy:'sBusy',DND:'sDnd'};
+  const classMap={Online:'active-online',Busy:'active-busy',DND:'active-dnd'};
+  if(document.getElementById(map[s]))document.getElementById(map[s]).className='status-btn '+classMap[s];
+  toast('Status set to '+s);
+}
+
+function toggleEditMode(){
+  const isEditing=document.getElementById('dtNameEdit').style.display!=='none';
+  if(isEditing){
+    ['dtNameView','dtIdView','dtProgramView','dtMemberView'].forEach(id=>document.getElementById(id).style.display='block');
+    ['dtNameEdit','dtIdEdit','dtProgramEdit','dtMemberEdit'].forEach(id=>document.getElementById(id).style.display='none');
+    document.getElementById('editActions').style.display='none';
+    document.getElementById('editBtn').textContent='✎ Edit';
+  }else{
+    ['dtNameView','dtIdView','dtProgramView','dtMemberView'].forEach(id=>document.getElementById(id).style.display='none');
+    ['dtNameEdit','dtIdEdit','dtProgramEdit','dtMemberEdit'].forEach(id=>document.getElementById(id).style.display='block');
+    document.getElementById('editActions').style.display='flex';
+    document.getElementById('editBtn').textContent='✕ Cancel';
+  }
+}
+
+function saveProfileChanges(){
+  const newName=document.getElementById('dtNameEdit').value.trim();
+  const newId=document.getElementById('dtIdEdit').value.trim();
+  const newProgram=document.getElementById('dtProgramEdit').value.trim();
+  const newMember=document.getElementById('dtMemberEdit').value.trim();
+  
+  if(!newName||!newId||!newProgram||!newMember){toast('All fields are required.');return;}
+  
+  document.getElementById('dtNameView').textContent=newName;
+  document.getElementById('dtIdView').textContent=newId;
+  document.getElementById('dtProgramView').textContent=newProgram;
+  document.getElementById('dtMemberView').textContent=newMember;
+  document.getElementById('profName').textContent=newName;
+  document.getElementById('profEmail').textContent=newId+'@gordoncollege.edu.ph';
+  
+  userName=newName;
+  userEmail=newId+'@gordoncollege.edu.ph';
+  
+  toggleEditMode();
+  toast('Profile updated successfully!');
+}
+
+function genReport(type){
+  const label=type==='weekly'?'Weekly':'Monthly';
+  const today=new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
+  const fullExits=Object.keys(EXIT_CAPACITY).filter(exit=>exitLoad(exit).full).length;
+  const avgLoad=Math.round(Object.keys(EXIT_CAPACITY).reduce((sum,exit)=>sum+exitLoad(exit).percent,0)/Object.keys(EXIT_CAPACITY).length);
+  const activeIncidents=incidents.filter(item=>item.status==='Active').length;
+  document.getElementById('reportPreview').innerHTML=`
+    <div style="text-align:left;width:100%">
+      <div style="font-weight:600;font-size:14px;color:var(--primary);margin-bottom:.5rem">${label} Safety & Navigation Report</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">Generated: ${today}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:13px">
+        <div><span style="color:var(--text3)">Total Routes</span><br><b style="color:var(--text)">12</b></div>
+        <div><span style="color:var(--text3)">Avg Exit Load</span><br><b style="color:var(--text)">${avgLoad}%</b></div>
+        <div><span style="color:var(--text3)">Full Exits</span><br><b style="color:var(--text)">${fullExits}</b></div>
+        <div><span style="color:var(--text3)">Blocked Areas</span><br><b style="color:var(--text)">${blockedNodes.size}</b></div>
+        <div><span style="color:var(--text3)">Active Incidents</span><br><b style="color:var(--text)">${activeIncidents}</b></div>
+        <div><span style="color:var(--text3)">Emergency Uses</span><br><b style="color:var(--text)">${emergencyMode?1:0}</b></div>
+      </div>
+    </div>`;
+  toast(label+' report generated!');
+}
+
+function toggleFaq(el){el.classList.toggle('open');}
+
+function cssVar(name){
+  return getComputedStyle(document.body).getPropertyValue(name).trim()
+    || getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function applyTheme(theme){
+  const isDark=theme==='dark';
+  document.body.classList.toggle('dark-mode',isDark);
+  localStorage.setItem('safepath-theme',isDark?'dark':'light');
+  const btn=document.getElementById('themeToggle');
+  if(btn){
+    btn.textContent=isDark?'☀️':'🌙';
+    btn.title=isDark?'Switch to light mode':'Switch to dark mode';
+    btn.setAttribute('aria-label',btn.title);
+  }
+  drawMap();
+}
+
+function toggleTheme(){
+  const next=document.body.classList.contains('dark-mode')?'light':'dark';
+  applyTheme(next);
+}
+
+applyTheme(localStorage.getItem('safepath-theme')||'light');
+
+const baseInitMap=initMap;
+initMap=function(){
+  if(!canvas){
+    baseInitMap();
+    canvas.addEventListener('click',selectNearestNodeOnCurrentFloor);
+  }else{
+    resizeCanvas();
+    drawMap();
+  }
+};
+
+const baseDrawMap=drawMap;
+drawMap=function(){
+  baseDrawMap();
+  updateMapBanner();
+  updateExitStatus();
+  updateSystemAlert();
+};
+
+function updateFloorButtons(){
+  document.querySelectorAll('.floor-btn').forEach((btn,idx)=>{
+    btn.classList.toggle('active-floor',idx+1===currentFloor);
+  });
+}
+
+function locationLabel(key){
+  const node=NODES[key];
+  const name=node.name||key;
+  return `${name} (${node.floor}F)`;
+}
+
+function exitLoad(exit){
+  const data=EXIT_CAPACITY[exit]||{count:0,capacity:1};
+  const percent=Math.min(100,Math.round((data.count/data.capacity)*100));
+  const remaining=Math.max(0,data.capacity-data.count);
+  const full=data.count>=data.capacity;
+  const warning=!full&&percent>=85;
+  return {...data,percent,remaining,full,warning};
+}
+
+function emergencyRoutesFrom(start){
+  return Object.keys(NODES)
+    .filter(k=>NODES[k].type==='exit')
+    .map(exit=>({exit,load:exitLoad(exit),route:dijkstra(start,exit,false,false)}))
+    .sort((a,b)=>(a.route?.dist??Infinity)-(b.route?.dist??Infinity));
+}
+
+function bestAvailableEmergencyRoute(start){
+  const routes=emergencyRoutesFrom(start);
+  const available=routes.find(item=>item.route&&!item.load.full&&!blockedNodes.has(item.exit));
+  return available||routes[0]||null;
+}
+
+function updateExitStatus(){
+  const list=document.getElementById('exitStatusList');
+  const suggestion=document.getElementById('exitSuggestion');
+  if(!list||!suggestion)return;
+  const start=document.getElementById('startSel')?.value||'Main Gate';
+  const routes=emergencyRoutesFrom(start);
+  const recommended=routes.find(item=>!item.load.full);
+  suggestion.textContent=recommended
+    ? `Recommended emergency way: ${locationLabel(recommended.exit)} - ${recommended.load.remaining} slots available.`
+    : 'All mapped exits are full. Alert security and hold users at the safest waiting area.';
+
+  list.innerHTML='';
+  routes.forEach(({exit,load,route})=>{
+    const row=document.createElement('div');
+    const blocked=blockedNodes.has(exit)||!route;
+    row.className='exit-status'+(blocked||load.full?' full':load.warning?' warning':'');
+    const badgeClass=blocked||load.full?'full':load.warning?'warning':'';
+    const label=blocked?'Blocked':load.full?'FULL / stranded risk':load.warning?'Almost full':'Available';
+    row.innerHTML=`
+      <div class="exit-status-top">
+        <div class="exit-status-name">${locationLabel(exit)}</div>
+        <div class="exit-badge ${badgeClass}">${label}</div>
+      </div>
+      <div class="exit-meter"><div class="exit-meter-fill" style="width:${load.percent}%"></div></div>
+      <div class="exit-status-meta">
+        <span>${load.count}/${load.capacity} people</span>
+        <span>${load.remaining} slot(s) left</span>
+        <span>${route?route.dist+'m away':'No safe route'}</span>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function refreshSafetyUI(){
+  updateExitStatus();
+  renderAdminControls();
+  renderIncidentLog();
+  updateIncidentLocationOptions();
+}
+
+function updateIncidentLocationOptions(){
+  const sel=document.getElementById('incidentLocation');
+  if(!sel)return;
+  const previous=sel.value;
+  sel.innerHTML='';
+  orderedLocations().forEach(key=>{
+    const opt=document.createElement('option');
+    opt.value=key;
+    opt.textContent=locationLabel(key);
+    sel.appendChild(opt);
+  });
+  if(previous&&NODES[previous])sel.value=previous;
+}
+
+function renderAdminControls(){
+  const exitBox=document.getElementById('adminExitControls');
+  const blockBox=document.getElementById('blockedControls');
+  if(exitBox){
+    exitBox.innerHTML='';
+    Object.keys(EXIT_CAPACITY).forEach(exit=>{
+      const load=exitLoad(exit);
+      const row=document.createElement('div');
+      row.className='control-row';
+      row.innerHTML=`
+        <div class="control-main">
+          <strong>${locationLabel(exit)}</strong>
+          <span>${load.count}/${load.capacity} people - ${load.remaining} slot(s) left</span>
+        </div>
+        <div class="control-actions">
+          <button class="mini-btn" onclick="adjustExitCount('${exit}',-5)">-5</button>
+          <button class="mini-btn" onclick="adjustExitCount('${exit}',-1)">-1</button>
+          <button class="mini-btn" onclick="adjustExitCount('${exit}',1)">+1</button>
+          <button class="mini-btn" onclick="adjustExitCount('${exit}',5)">+5</button>
+        </div>`;
+      exitBox.appendChild(row);
+    });
+  }
+  if(blockBox){
+    blockBox.innerHTML='';
+    BLOCKABLE_NODES.forEach(node=>{
+      const row=document.createElement('div');
+      row.className='control-row';
+      row.innerHTML=`
+        <div class="control-main">
+          <strong>${locationLabel(node)}</strong>
+          <span>${blockedNodes.has(node)?'Closed - routes avoid this area':'Open - usable for routes'}</span>
+        </div>
+        <div class="control-actions">
+          <button class="mini-btn danger ${blockedNodes.has(node)?'active':''}" onclick="toggleBlockedNode('${node}')">${blockedNodes.has(node)?'Open':'Block'}</button>
+        </div>`;
+      blockBox.appendChild(row);
+    });
+  }
+  updateSystemAlert();
+}
+
+function renderIncidentLog(){
+  const list=document.getElementById('incidentList');
+  if(!list)return;
+  if(!incidents.length){
+    list.innerHTML='<div class="dir-empty">No incidents recorded.</div>';
+    return;
+  }
+  list.innerHTML='';
+  incidents.forEach(item=>{
+    const row=document.createElement('div');
+    row.className='incident-item';
+    row.innerHTML=`<strong>${item.type} - ${locationLabel(item.location)}</strong>${item.notes}<br><span>${item.time} - ${item.status}</span>`;
+    list.appendChild(row);
+  });
+}
+
+function updateSystemAlert(){
+  const alert=document.getElementById('systemAlert');
+  if(!alert)return;
+  const fullExits=Object.keys(EXIT_CAPACITY).filter(exit=>exitLoad(exit).full).length;
+  const blockedCount=blockedNodes.size;
+  alert.classList.toggle('safe',fullExits===0&&blockedCount===0);
+  alert.querySelector('span').textContent=fullExits||blockedCount
+    ? `Active risk: ${fullExits} full exit(s), ${blockedCount} blocked area(s)`
+    : 'System status: Normal monitoring';
+}
+
+function adjustExitCount(exit,delta){
+  const data=EXIT_CAPACITY[exit];
+  data.count=Math.max(0,data.count+delta);
+  refreshSafetyUI();
+  if(emergencyMode)toggleEmergency(),toggleEmergency();
+  drawMap();
+  toast(`${locationLabel(exit)} updated to ${data.count}/${data.capacity}.`);
+}
+
+function toggleBlockedNode(node){
+  if(blockedNodes.has(node))blockedNodes.delete(node);
+  else blockedNodes.add(node);
+  clearPath();
+  refreshSafetyUI();
+  drawMap();
+  toast(`${locationLabel(node)} ${blockedNodes.has(node)?'blocked':'reopened'}.`);
+}
+
+function runSimulation(type){
+  if(type==='clear'){clearSimulation();return;}
+  blockedNodes.clear();
+  if(type==='fire'){
+    blockedNodes.add('Room 302');
+    blockedNodes.add('Stairs 3F');
+    incidents.unshift({type:'Fire / Smoke',location:'Room 302',notes:'Smoke detected near classroom corridor. Routes avoiding 3F stairs.',time:'Now',status:'Active'});
+  }
+  if(type==='earthquake'){
+    blockedNodes.add('Elevator 4F');
+    blockedNodes.add('Stairs 4F');
+    incidents.unshift({type:'Earthquake Drill',location:'Elevator 4F',notes:'Elevator disabled and upper-floor stairs under inspection.',time:'Now',status:'Active'});
+  }
+  if(type==='crowd'){
+    EXIT_CAPACITY['Fire Exit 1F'].count=EXIT_CAPACITY['Fire Exit 1F'].capacity;
+    EXIT_CAPACITY['Fire Exit 5F'].count=EXIT_CAPACITY['Fire Exit 5F'].capacity;
+    incidents.unshift({type:'Crowd Build-up',location:'Fire Exit 1F',notes:'Two exits reached capacity. System should reroute to available exits.',time:'Now',status:'Active'});
+  }
+  emergencyMode=false;
+  document.getElementById('emergBtn').classList.remove('active');
+  refreshSafetyUI();
+  drawMap();
+  goSec('Nav');
+  toast('Simulation applied. Tap Emergency to test rerouting.',3500);
+}
+
+function clearSimulation(){
+  blockedNodes.clear();
+  EXIT_CAPACITY['Emergency Exit 1F'].count=38;
+  EXIT_CAPACITY['Fire Exit 1F'].count=35;
+  EXIT_CAPACITY['Fire Exit 2F'].count=32;
+  EXIT_CAPACITY['Fire Exit 4F'].count=24;
+  EXIT_CAPACITY['Fire Exit 5F'].count=28;
+  EXIT_CAPACITY['Fire Exit 6F'].count=18;
+  clearPath();
+  refreshSafetyUI();
+  toast('Simulation reset.');
+}
+
+function submitIncident(){
+  const type=document.getElementById('incidentType').value;
+  const location=document.getElementById('incidentLocation').value;
+  const notes=document.getElementById('incidentNotes').value.trim()||'No extra details provided.';
+  if(!location){toast('Select an incident location.');return;}
+  incidents.unshift({type,location,notes,time:'Now',status:'Active'});
+  if(type.includes('Blocked'))blockedNodes.add(location);
+  if(type.includes('Crowd')&&EXIT_CAPACITY[location]){
+    EXIT_CAPACITY[location].count=EXIT_CAPACITY[location].capacity;
+  }
+  document.getElementById('incidentNotes').value='';
+  refreshSafetyUI();
+  drawMap();
+  toast('Incident report submitted and added to Control Center.');
+}
+
+function orderedLocations(){
+  return Object.keys(NODES).sort((a,b)=>{
+    return NODES[a].floor-NODES[b].floor || locationLabel(a).localeCompare(locationLabel(b));
+  });
+}
+
+function populateSelects(){
+  const keys=orderedLocations();
+  ['startSel','endSel'].forEach((id,i)=>{
+    const sel=document.getElementById(id);
+    const previous=sel.value;
+    sel.innerHTML='<option value="">-- Select any floor location --</option>';
+    for(let floor=1;floor<=6;floor++){
+      const group=document.createElement('optgroup');
+      group.label=`Floor ${floor}`;
+      keys.filter(k=>NODES[k].floor===floor).forEach(k=>{
+        const opt=document.createElement('option');
+        opt.value=k;
+        opt.textContent=locationLabel(k);
+        group.appendChild(opt);
+      });
+      sel.appendChild(group);
+    }
+    if(previous&&NODES[previous])sel.value=previous;
+    if(i===0&&!sel.value){
+      const startDefault=keys.find(k=>k.includes('Main Gate')||k.includes('Gate'));
+      if(startDefault)sel.value=startDefault;
+    }
+    if(i===1&&!sel.value){
+      const endDefault=keys.find(k=>k.includes('Library')||k.includes('Fire Exit'));
+      if(endDefault)sel.value=endDefault;
+    }
+    sel.onchange=()=>{
+      syncFloorToSelection(sel.value);
+      updateExitStatus();
+    };
+  });
+  updateExitStatus();
+  updateIncidentLocationOptions();
+}
+
+function selectFloor(floor){
+  currentFloor=floor;
+  updateFloorButtons();
+  drawMap();
+}
+
+function syncFloorToSelection(key){
+  if(!key||!NODES[key])return;
+  currentFloor=NODES[key].floor;
+  updateFloorButtons();
+  drawMap();
+}
+
+function pathFloors(){
+  return [...new Set(currentPath.map(k=>NODES[k]?.floor).filter(Boolean))].sort((a,b)=>a-b);
+}
+
+function updateMapBanner(){
+  const banner=document.getElementById('mapBanner');
+  if(!banner)return;
+  const floors=pathFloors();
+  if(!floors.length){
+    banner.classList.remove('show');
+    banner.textContent='';
+    return;
+  }
+  banner.classList.add('show');
+  banner.textContent=floors.length>1
+    ? `Route spans floors ${floors.map(f=>f+'F').join(', ')}. Use floor buttons to inspect each segment.`
+    : `Showing route on ${floors[0]}F.`;
+}
+
+function describeRouteStep(node,i,path){
+  const label=locationLabel(node);
+  if(i===0)return `Start at ${label}`;
+  const prev=path[i-1];
+  const prevFloor=NODES[prev].floor;
+  const floor=NODES[node].floor;
+  if(prevFloor!==floor){
+    const connector=NODES[node].type==='stairs'?'stairs':'elevator';
+    return `Take the ${connector} from ${prevFloor}F to ${floor}F`;
+  }
+  if(i===path.length-1)return `Arrive at ${label}`;
+  return `Continue to ${label}`;
+}
+
+function renderRoute(result,modeLabel){
+  currentPath=result.path;
+  const floors=pathFloors();
+  document.getElementById('statDist').textContent=result.dist+'m';
+  document.getElementById('statNodes').textContent=result.visited;
+  if(modeLabel)document.getElementById('statMode').textContent=modeLabel;
+  const dl=document.getElementById('dirList');
+  dl.innerHTML='';
+  result.path.forEach((node,i)=>{
+    const li=document.createElement('li');
+    li.className='dir-item';
+    li.textContent=describeRouteStep(node,i,result.path);
+    dl.appendChild(li);
+  });
+  if(floors.length)currentFloor=NODES[result.path[0]].floor;
+  updateFloorButtons();
+  drawMap();
+}
+
+function findPath(){
+  const s=document.getElementById('startSel').value;
+  const e=document.getElementById('endSel').value;
+  if(!s||!e){toast('Please select both start and end locations.');return;}
+  if(s===e){toast('Start and end cannot be the same.');return;}
+  const pwd=document.getElementById('pwdToggle').checked;
+  const algo=document.getElementById('algoToggle').checked;
+  const result=dijkstra(s,e,pwd,algo);
+  if(!result){toast('No path found. Try disabling PWD Mode.');return;}
+  document.getElementById('statAlgo').textContent=algo?'A*':'Dijkstra';
+  renderRoute(result,pwd?'PWD':'Standard');
+  toast(`Route found across ${pathFloors().length} floor(s): ${result.dist}m via ${result.path.length} stops.`);
+}
+
+function clearPath(){
+  currentPath=[];
+  document.getElementById('statAlgo').textContent='Dijkstra';
+  document.getElementById('statDist').textContent='--';
+  document.getElementById('statNodes').textContent='--';
+  document.getElementById('statMode').textContent='Standard';
+  document.getElementById('dirList').innerHTML='<li class="dir-empty">Select a start and end point, then tap Find Path.</li>';
+  drawMap();
+}
+
+function toggleEmergency(){
+  emergencyMode=!emergencyMode;
+  const btn=document.getElementById('emergBtn');
+  const banner=document.getElementById('emerBanner');
+  btn.classList.toggle('active',emergencyMode);
+  banner.classList.toggle('show',emergencyMode);
+  if(emergencyMode){
+    const start=document.getElementById('startSel').value||'Main Gate';
+    const best=bestAvailableEmergencyRoute(start);
+    if(best&&best.route&&!best.load.full&&!blockedNodes.has(best.exit)){
+      document.getElementById('statAlgo').textContent='Dijkstra';
+      renderRoute(best.route,'Emergency');
+      const exitName=locationLabel(best.exit);
+      banner.textContent=`EMERGENCY MODE - ${exitName} has ${best.load.count}/${best.load.capacity} people. Route uses an available exit.`;
+      toast(`Emergency route to ${exitName}. ${best.load.remaining} slot(s) available.`,3500);
+    }else if(best){
+      banner.textContent='EMERGENCY MODE - No available safe exit route. Alert security immediately.';
+      toast('No available safe exit route. Alert security immediately.',3500);
+      updateExitStatus();
+    }
+  } else {
+    clearPath();
+    banner.textContent='';
+    toast('Emergency mode deactivated.');
+  }
+}
+
+function selectNearestNodeOnCurrentFloor(evt){
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=W/rect.width;
+  const scaleY=H/rect.height;
+  const x=(evt.clientX-rect.left)*scaleX;
+  const y=(evt.clientY-rect.top)*scaleY;
+  let nearest=null;
+  let nearestDist=Infinity;
+  Object.entries(NODES).forEach(([key,node])=>{
+    if(node.floor!==currentFloor)return;
+    const pos=nodePos(key);
+    const dist=Math.hypot(pos.x-x,pos.y-y);
+    if(dist<nearestDist){nearest=key;nearestDist=dist;}
+  });
+  if(!nearest||nearestDist>32)return;
+  const startSel=document.getElementById('startSel');
+  const endSel=document.getElementById('endSel');
+  if(!startSel.value||currentPath.length){
+    startSel.value=nearest;
+    currentPath=[];
+    toast(`Current location set to ${locationLabel(nearest)}.`);
+  }else{
+    endSel.value=nearest;
+    toast(`Destination set to ${locationLabel(nearest)}.`);
+  }
+  drawMap();
+}
+</script>
+</body>
+</html>
