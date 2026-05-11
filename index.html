@@ -28,12 +28,22 @@ body.dark-mode{
   --shadow:0 2px 14px rgba(0,0,0,.35);
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#splash{position:fixed;inset:0;background:linear-gradient(135deg,#0f4d2a 0%,#1a7a4a 55%,#28a466 100%);display:flex;align-items:center;justify-content:center;z-index:2000;color:#fff;transition:.35s ease}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-inner{text-align:center}
+.splash-logo{width:118px;height:118px;border-radius:28px;object-fit:cover;box-shadow:0 20px 50px rgba(0,0,0,.22);margin-bottom:1rem}
+.splash-title{font-size:30px;font-weight:800;margin-bottom:.25rem}
+.splash-sub{font-size:13px;opacity:.9;margin-bottom:1rem}
+.splash-bar{width:180px;height:6px;background:rgba(255,255,255,.25);border-radius:999px;overflow:hidden;margin:auto}
+.splash-bar span{display:block;width:42%;height:100%;background:#fff;border-radius:999px;animation:splashLoad 1.2s infinite alternate}
+@keyframes splashLoad{from{transform:translateX(-30%)}to{transform:translateX(170%)}}
 
 /* ── OVERLAY ── */
 #overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f4d2a 0%,#1a7a4a 50%,#2d9e66 100%);display:flex;align-items:center;justify-content:center;z-index:999;padding:1rem}
 .auth-card{background:var(--surface);border-radius:20px;padding:2rem;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.25)}
-.auth-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:1.5rem}
-.auth-logo-circle{width:52px;height:52px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:1.5rem}
+.auth-logo-circle{width:104px;height:104px;background:var(--primary);border-radius:24px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.auth-logo-circle img{width:100%;height:100%;object-fit:cover;display:block}
 .auth-logo-text h1{font-size:22px;font-weight:700;color:var(--primary)}
 .auth-logo-text p{font-size:12px;color:var(--text2)}
 .auth-tabs{display:flex;background:var(--surface2);border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:1.5rem}
@@ -63,6 +73,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .terms-row input{width:auto}
 .pwd-hint{font-size:11px;color:var(--text3);margin-bottom:.75rem;line-height:1.5}
 .badge-sdg{background:#e8623a;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
+.mode-badge{background:var(--primary-light);color:var(--primary);padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap}
+.mode-badge.admin{background:var(--accent-light);color:#8a6400}
 
 /* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
@@ -80,7 +92,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 #app.show{display:flex}
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .hdr-left{display:flex;align-items:center;gap:10px}
-.hdr-logo{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px}
+.hdr-logo{width:46px;height:46px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.hdr-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .hdr-title{font-size:16px;font-weight:700;color:var(--primary)}
 .hdr-sub{font-size:11px;color:var(--text2)}
 .hdr-right{display:flex;align-items:center;gap:.5rem}
@@ -96,7 +109,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
 
 /* ── BOTTOM NAV ── */
 .bottom-nav{background:var(--surface);border-top:1px solid var(--border);display:flex;position:sticky;bottom:0;z-index:100}
-.nav-item{flex:1;padding:.6rem .25rem;text-align:center;cursor:pointer;border:none;background:none;color:var(--text3);font-size:10px;font-weight:500;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-item{flex:1;padding:.6rem .25rem;text-align:center;cursor:pointer;border:none;background:none;color:var(--text3);font-size:10px;font-weight:500;transition:.25s ease,transform .25s ease,box-shadow .25s ease;display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:12px}
+.nav-item:hover{background:rgba(26,122,74,.08);transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.08)}
 .nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav-item.active{color:var(--primary)}
 .nav-item.active svg{stroke:var(--primary)}
@@ -119,6 +133,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
 .sel-group select:focus{border-color:var(--primary)}
 .sel-group select option,.sel-group select optgroup{background:var(--surface);color:var(--text)}
 body.dark-mode .sel-group select option,body.dark-mode .sel-group select optgroup{background:#17211b;color:#edf6ef}
+.sel-group input{width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);outline:none}
+.sel-group input:focus{border-color:var(--primary)}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border)}
 .toggle-row:last-of-type{border-bottom:none}
 .toggle-label{font-size:13px;font-weight:600;color:var(--text)}
@@ -131,7 +147,9 @@ body.dark-mode .sel-group select option,body.dark-mode .sel-group select optgrou
 .switch input:checked+.slider::before{transform:translateX(20px)}
 .btn-find{width:100%;padding:.75rem;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:.2s;margin-top:.75rem}
 .btn-find:hover{background:var(--primary-dark)}
-.btn-clear{width:100%;padding:.6rem;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;margin-top:.5rem}
+.btn-clear{width:100%;padding:.6rem;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;margin-top:.5rem;transition:.2s}
+.btn-clear:hover{box-shadow:0 12px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
+.btn-find:hover, .btn-primary:hover, .btn-google:hover, .btn-edit:hover, .btn-save:hover, .btn-cancel:hover, .quick-btn:hover, .mini-btn:hover, .report-btn:hover, .status-btn:hover, .floor-btn:hover, .hdr-btn:hover{box-shadow:0 12px 24px rgba(0,0,0,.12);transform:translateY(-1px)}
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.75rem}
 .stat-card{background:var(--surface2);border-radius:var(--radius-sm);padding:.65rem .85rem}
 .stat-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:2px}
@@ -162,12 +180,15 @@ body.dark-mode .exit-status.warning{background:#33210d}
 .mini-btn.active{background:var(--danger);border-color:var(--danger);color:#fff}
 .incident-form{display:grid;grid-template-columns:1fr;gap:.65rem}
 .incident-form select,.incident-form textarea{width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);outline:none}
+.incident-form input{width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);outline:none}
 .incident-form textarea{min-height:76px;resize:vertical;font-family:inherit}
 .incident-list{display:grid;gap:.55rem}
 .incident-item{background:var(--surface2);border-left:4px solid var(--danger);border-radius:var(--radius-sm);padding:.65rem .75rem;font-size:13px;color:var(--text2)}
 .incident-item strong{display:block;color:var(--text);margin-bottom:2px}
 .alert-strip{display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:var(--danger-light);border:1px solid #fca5a5;border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;color:var(--danger);font-size:13px;font-weight:700}
 .alert-strip.safe{background:var(--primary-light);border-color:var(--border2);color:var(--primary)}
+.score-pill{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:800;background:var(--primary-light);color:var(--primary)}
+.score-pill.warning{background:#fff7ed;color:#b45309}.score-pill.danger{background:var(--danger-light);color:var(--danger)}
 @media(min-width:760px){.control-grid{grid-template-columns:1fr 1fr}.incident-form{grid-template-columns:1fr 1fr}.incident-form textarea,.incident-form button{grid-column:1/-1}}
 .dashboard-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1rem}
 .dash-metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem}
@@ -176,6 +197,11 @@ body.dark-mode .exit-status.warning{background:#33210d}
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
 .quick-btn{padding:.85rem;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.5rem;justify-content:center;transition:.2s}
 .quick-btn:hover{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+.announcement-card{background:var(--info-light);border:1px solid #9bc7e6;border-radius:var(--radius-sm);padding:.85rem;margin-bottom:1rem}
+.announcement-top{display:flex;justify-content:space-between;gap:.75rem;align-items:center;margin-bottom:.25rem}
+.announcement-title{font-size:13px;font-weight:800;color:var(--info)}
+.announcement-time{font-size:11px;color:var(--text3)}
+.announcement-text{font-size:13px;color:var(--text2);line-height:1.5}
 .directions-list{padding-left:1.25rem}
 .dir-item{font-size:13px;color:var(--text2);padding:.35rem 0;border-bottom:1px dotted var(--border)}
 .dir-item:last-child{border-bottom:none}
@@ -201,7 +227,6 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
 .avatar{width:60px;height:60px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0}
 .profile-name{font-size:18px;font-weight:700;color:var(--primary)}
 .profile-email{font-size:13px;color:var(--text2)}
-.profile-badge{display:inline-flex;align-items:center;gap:4px;background:var(--primary);color:#fff;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:4px}
 .status-btns{display:flex;gap:.5rem}
 .status-btn{flex:1;padding:.5rem;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:.2s}
 .status-btn.active-online{background:#dcfce7;color:#166534;border-color:#86efac}
@@ -245,11 +270,20 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
 </head>
 <body>
 
+<div id="splash">
+  <div class="splash-inner">
+    <img class="splash-logo" src="safepath_logo.jpg" alt="SafePath logo"/>
+    <div class="splash-title">SafePath</div>
+    <div class="splash-sub">Preparing campus routes...</div>
+    <div class="splash-bar"><span></span></div>
+  </div>
+</div>
+
 <!-- OVERLAY -->
 <div id="overlay">
   <div class="auth-card">
     <div class="auth-logo">
-      <div class="auth-logo-circle">SP</div>
+      <div class="auth-logo-circle"><img src="safepath_logo.jpg" alt="SafePath logo"/></div>
       <div class="auth-logo-text">
         <h1>SafePath</h1>
         <p>Gordon College Campus Navigation</p>
@@ -378,13 +412,14 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
 <div id="app">
   <header>
     <div class="hdr-left">
-      <div class="hdr-logo">SP</div>
+      <div class="hdr-logo"><img src="safepath_logo.jpg" alt="SafePath logo"/></div>
       <div>
         <div class="hdr-title">SafePath</div>
         <div class="hdr-sub">Gordon College</div>
       </div>
     </div>
     <div class="hdr-right">
+      <span class="mode-badge" id="modeBadge">Student Mode</span>
       <span class="badge-sdg">SDG 11</span>
       <div class="status-indicator">
         <div class="dot online" id="hdrDot"></div>
@@ -403,6 +438,14 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
         <div class="section-sub">SafePath guide for Gordon College emergency navigation</div>
       </div>
       <div style="padding:0 1rem">
+        <div class="announcement-card" id="dashboardAnnouncement">
+          <div class="announcement-top">
+            <div class="announcement-title">Campus Safety Announcement</div>
+            <div class="announcement-time" id="announcementTime">Now</div>
+          </div>
+          <div class="announcement-text" id="announcementText">No active emergency announcement. SafePath is monitoring routes and exits.</div>
+        </div>
+
         <div class="dashboard-grid">
           <div class="dash-metric"><strong>6</strong><span>Floors covered by the campus map</span></div>
           <div class="dash-metric"><strong>24/7</strong><span>Emergency route access inside the app</span></div>
@@ -453,6 +496,7 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
             <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"/></svg></div>
             Route Planner
           </div>
+          <div class="sel-group"><label>Search Location</label><input id="locationSearch" type="search" placeholder="Search room, CR, exit, elevator..." oninput="filterLocationOptions()"/></div>
           <div class="sel-group"><label>From</label><select id="startSel"></select></div>
           <div class="sel-group"><label>To</label><select id="endSel"></select></div>
           <div style="margin:.75rem 0">
@@ -513,6 +557,8 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
             <div class="stat-card"><div class="stat-label">Distance</div><div class="stat-value" id="statDist">—</div></div>
             <div class="stat-card"><div class="stat-label">Nodes Visited</div><div class="stat-value" id="statNodes">—</div></div>
             <div class="stat-card"><div class="stat-label">Mode</div><div class="stat-value" id="statMode">Standard</div></div>
+            <div class="stat-card"><div class="stat-label">Safety Score</div><div class="stat-value"><span class="score-pill" id="safetyScore">--</span></div></div>
+            <div class="stat-card"><div class="stat-label">Evacuation Timer</div><div class="stat-value" id="evacTimer">00:00</div></div>
           </div>
         </div>
 
@@ -550,7 +596,6 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
           <div>
             <div class="profile-name" id="profName">Juan dela Cruz</div>
             <div class="profile-email" id="profEmail">22-01234@gordoncollege.edu.ph</div>
-            <div class="profile-badge">BSCS 2A · Student</div>
           </div>
         </div>
         <div class="card">
@@ -588,7 +633,7 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
               <input type="text" id="dtMemberEdit" value="May 2026" class="profile-edit-input" style="display:none"/>
             </div>
           </div>
-          <div id="editActions" style="display:none;margin-top:1rem;display:flex;gap:0.75rem">
+          <div id="editActions" style="display:none;margin-top:1rem;gap:0.75rem">
             <button class="btn-save" onclick="saveProfileChanges()">Save Changes</button>
             <button class="btn-cancel" onclick="toggleEditMode()">Cancel</button>
           </div>
@@ -641,6 +686,13 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
             <button class="quick-btn" onclick="runSimulation('earthquake')">Earthquake Drill</button>
             <button class="quick-btn" onclick="runSimulation('crowd')">Crowd Surge</button>
             <button class="quick-btn" onclick="runSimulation('clear')">Clear Scenario</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Announcement Broadcast</div>
+          <div class="incident-form">
+            <input id="adminAnnouncement" type="text" placeholder="Example: Avoid 3F hallway. Use 4F Fire Exit."/>
+            <button class="btn-find" onclick="saveAnnouncement()">Post Announcement</button>
           </div>
         </div>
         <div class="card">
@@ -828,6 +880,10 @@ const ADMIN_ACCOUNTS=[
 
 let currentPath=[];let emergencyMode=false;let currentStatus='Online';
 let userName='Juan dela Cruz';let userEmail='22-01234@gordoncollege.edu.ph';let loginRole='user';let currentRole='user';
+let activeAnnouncement={text:'No active emergency announcement. SafePath is monitoring routes and exits.',time:'Now'};
+let routeHistory=[];
+let emergencyStartTime=null;
+let evacuationTimer=null;
 
 function authTab(id,el){
   document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
@@ -898,6 +954,7 @@ function doRegister(){
 
 function launchApp(name,email,role='user'){
   userName=name;userEmail=email;currentRole=role;
+  loadStoredSafetyData();
   document.getElementById('overlay').style.display='none';
   document.getElementById('app').classList.add('show');
   document.getElementById('profName').textContent=name;
@@ -906,12 +963,16 @@ function launchApp(name,email,role='user'){
   document.getElementById('dtNameEdit').value=name;
   document.getElementById('dtIdView').textContent=email.split('@')[0];
   document.getElementById('dtIdEdit').value=email.split('@')[0];
-  document.querySelector('.profile-badge').textContent=role==='admin'?'Safety Admin':'BSCS 2A Â· Student';
   document.getElementById('navControl').style.display=role==='admin'?'flex':'none';
   document.getElementById('quickControl').style.display=role==='admin'?'flex':'none';
+  const modeBadge=document.getElementById('modeBadge');
+  modeBadge.textContent=role==='admin'?'Admin Mode':'Student Mode';
+  modeBadge.classList.toggle('admin',role==='admin');
   document.getElementById('avatarCircle').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   initMap();
   populateSelects();
+  renderAnnouncement();
+  updateSafetyScore();
   goSec('Dashboard');
 }
 
@@ -1295,6 +1356,113 @@ function genReport(type){
 
 function toggleFaq(el){el.classList.toggle('open');}
 
+function hideSplash(){
+  const splash=document.getElementById('splash');
+  if(splash)splash.classList.add('hide');
+}
+
+function saveSafetyData(){
+  const data={
+    exitCapacity:EXIT_CAPACITY,
+    blockedNodes:[...blockedNodes],
+    incidents,
+    activeAnnouncement,
+    routeHistory
+  };
+  localStorage.setItem('safepath-data',JSON.stringify(data));
+}
+
+function loadStoredSafetyData(){
+  try{
+    const raw=localStorage.getItem('safepath-data');
+    if(!raw)return;
+    const data=JSON.parse(raw);
+    if(data.exitCapacity){
+      Object.keys(data.exitCapacity).forEach(key=>{
+        if(EXIT_CAPACITY[key])EXIT_CAPACITY[key].count=data.exitCapacity[key].count;
+      });
+    }
+    if(Array.isArray(data.blockedNodes))blockedNodes=new Set(data.blockedNodes);
+    if(Array.isArray(data.incidents))incidents=data.incidents;
+    if(data.activeAnnouncement)activeAnnouncement=data.activeAnnouncement;
+    if(Array.isArray(data.routeHistory))routeHistory=data.routeHistory;
+  }catch(err){
+    console.warn('Unable to load saved SafePath data',err);
+  }
+}
+
+function renderAnnouncement(){
+  const text=document.getElementById('announcementText');
+  const time=document.getElementById('announcementTime');
+  if(text)text.textContent=activeAnnouncement.text;
+  if(time)time.textContent=activeAnnouncement.time;
+}
+
+function saveAnnouncement(){
+  const input=document.getElementById('adminAnnouncement');
+  const text=input.value.trim();
+  if(!text){toast('Enter an announcement first.');return;}
+  activeAnnouncement={text,time:new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})};
+  input.value='';
+  renderAnnouncement();
+  saveSafetyData();
+  toast('Announcement posted to the dashboard.');
+}
+
+function filterLocationOptions(){
+  const search=(document.getElementById('locationSearch')?.value||'').toLowerCase().trim();
+  populateSelects(search);
+}
+
+function computeSafetyScore(path=[]){
+  let score=100;
+  const fullExits=Object.keys(EXIT_CAPACITY).filter(exit=>exitLoad(exit).full).length;
+  score-=fullExits*8;
+  score-=blockedNodes.size*5;
+  score-=incidents.filter(item=>item.status==='Active').length*4;
+  path.forEach(node=>{
+    if(NODES[node]?.type==='stairs')score-=2;
+    if(NODES[node]?.type==='exit'&&exitLoad(node).warning)score-=8;
+  });
+  return Math.max(35,Math.min(100,score));
+}
+
+function updateSafetyScore(path=currentPath){
+  const pill=document.getElementById('safetyScore');
+  if(!pill)return;
+  if(!path.length){
+    pill.textContent='--';
+    pill.className='score-pill';
+    return;
+  }
+  const score=computeSafetyScore(path);
+  pill.textContent=score+'%';
+  pill.className='score-pill'+(score<60?' danger':score<80?' warning':'');
+}
+
+function startEvacuationTimer(){
+  emergencyStartTime=Date.now();
+  clearInterval(evacuationTimer);
+  evacuationTimer=setInterval(updateEvacuationTimer,1000);
+  updateEvacuationTimer();
+}
+
+function stopEvacuationTimer(){
+  emergencyStartTime=null;
+  clearInterval(evacuationTimer);
+  const el=document.getElementById('evacTimer');
+  if(el)el.textContent='00:00';
+}
+
+function updateEvacuationTimer(){
+  const el=document.getElementById('evacTimer');
+  if(!el||!emergencyStartTime)return;
+  const sec=Math.floor((Date.now()-emergencyStartTime)/1000);
+  const min=String(Math.floor(sec/60)).padStart(2,'0');
+  const rem=String(sec%60).padStart(2,'0');
+  el.textContent=`${min}:${rem}`;
+}
+
 function cssVar(name){
   return getComputedStyle(document.body).getPropertyValue(name).trim()
     || getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -1319,6 +1487,7 @@ function toggleTheme(){
 }
 
 applyTheme(localStorage.getItem('safepath-theme')||'light');
+setTimeout(hideSplash,1200);
 
 const baseInitMap=initMap;
 initMap=function(){
@@ -1575,7 +1744,7 @@ function orderedLocations(){
   });
 }
 
-function populateSelects(){
+function populateSelects(filter=''){
   const keys=orderedLocations();
   ['startSel','endSel'].forEach((id,i)=>{
     const sel=document.getElementById(id);
@@ -1584,13 +1753,13 @@ function populateSelects(){
     for(let floor=1;floor<=6;floor++){
       const group=document.createElement('optgroup');
       group.label=`Floor ${floor}`;
-      keys.filter(k=>NODES[k].floor===floor).forEach(k=>{
+      keys.filter(k=>NODES[k].floor===floor&&locationLabel(k).toLowerCase().includes(filter)).forEach(k=>{
         const opt=document.createElement('option');
         opt.value=k;
         opt.textContent=locationLabel(k);
         group.appendChild(opt);
       });
-      sel.appendChild(group);
+      if(group.children.length)sel.appendChild(group);
     }
     if(previous&&NODES[previous])sel.value=previous;
     if(i===0&&!sel.value){
@@ -1662,6 +1831,7 @@ function renderRoute(result,modeLabel){
   document.getElementById('statDist').textContent=result.dist+'m';
   document.getElementById('statNodes').textContent=result.visited;
   if(modeLabel)document.getElementById('statMode').textContent=modeLabel;
+  updateSafetyScore(result.path);
   const dl=document.getElementById('dirList');
   dl.innerHTML='';
   result.path.forEach((node,i)=>{
@@ -1673,6 +1843,9 @@ function renderRoute(result,modeLabel){
   if(floors.length)currentFloor=NODES[result.path[0]].floor;
   updateFloorButtons();
   drawMap();
+  routeHistory.unshift({from:locationLabel(result.path[0]),to:locationLabel(result.path[result.path.length-1]),mode:modeLabel||'Standard',dist:result.dist,time:'Now'});
+  routeHistory=routeHistory.slice(0,8);
+  saveSafetyData();
 }
 
 function findPath(){
@@ -1695,6 +1868,7 @@ function clearPath(){
   document.getElementById('statDist').textContent='--';
   document.getElementById('statNodes').textContent='--';
   document.getElementById('statMode').textContent='Standard';
+  updateSafetyScore([]);
   document.getElementById('dirList').innerHTML='<li class="dir-empty">Select a start and end point, then tap Find Path.</li>';
   drawMap();
 }
