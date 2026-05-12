@@ -904,24 +904,36 @@ function setLoginRole(role){
     : 'e.g. 22-01234 or name@gordoncollege.edu.ph';
 }
 
-function doLogin(){
-  const e=document.getElementById('li_email').value.trim();
-  const p=document.getElementById('li_pass').value;
-  if(!e||!p){toast('Please enter email and password.');return;}
-  if(loginRole==='admin'){
-    const admin=ADMIN_ACCOUNTS.find(acc=>acc.email.toLowerCase()===e.toLowerCase()&&acc.password===p);
-    if(!admin){toast('Admin access denied. Use an approved Safety Admin account.');return;}
-    launchApp(admin.name,admin.email,'admin');
+async function doLogin() {
+  const email = document.getElementById('li_email').value.trim();
+  const password = document.getElementById('li_pass').value;
+  const role = loginRole;
+  
+  if (!email || !password) {
+    toast('Please enter email and password.');
     return;
   }
-  if(e==='demo'&&p==='demo'){launchApp('Demo User','demo@gordoncollege.edu.ph','user');return;}
-  toast('Sending OTP…');
-  setTimeout(()=>{
-    openModal('mOtp');
-    document.getElementById('otpInput').dataset.action='login';
-    document.getElementById('otpInput').dataset.email=e;
-    document.getElementById('otpInput').dataset.role='user';
-  },800);
+  
+  try {
+    const response = await fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, role })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      toast(data.error || 'Login failed');
+      return;
+    }
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    launchApp(data.user.name, email, data.user.role);
+  } catch (error) {
+    toast('Connection error. Make sure server is running.');
+  }
 }
 
 function verifyOtp(){
@@ -933,25 +945,60 @@ function verifyOtp(){
   launchApp(name,e,'user');
 }
 
-function doRegister(){
-  const name=document.getElementById('rg_name').value.trim();
-  const email=document.getElementById('rg_email').value.trim();
-  const pass=document.getElementById('rg_pass').value;
-  const confirm=document.getElementById('rg_confirm').value;
-  if(!name||!email){toast('Please fill in all required fields.');return;}
-  if(pass!==confirm){toast('Passwords do not match.');return;}
-  if(!document.getElementById('termsCheck').checked){toast('Please accept the Terms & Conditions.');return;}
-  const re=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
-  if(!re.test(pass)){toast('Password does not meet the requirements.');return;}
-  toast('Sending OTP…');
-  setTimeout(()=>{
-    openModal('mOtp');
-    document.getElementById('otpInput').dataset.action='register';
-    document.getElementById('otpInput').dataset.email=email;
-    document.getElementById('otpInput').dataset.name=name;
-  },800);
+async function doRegister() {
+  const name = document.getElementById('rg_name').value.trim();
+  const email = document.getElementById('rg_email').value.trim();
+  const password = document.getElementById('rg_pass').value;
+  const confirm = document.getElementById('rg_confirm').value;
+  const age = document.getElementById('rg_age').value;
+  const birthday = document.getElementById('rg_dob').value;
+  const phone = document.getElementById('rg_phone').value;
+  
+  if (!name || !email) {
+    toast('Please fill in all required fields.');
+    return;
+  }
+  
+  if (password !== confirm) {
+    toast('Passwords do not match.');
+    return;
+  }
+  
+  if (!document.getElementById('termsCheck').checked) {
+    toast('Please accept the Terms & Conditions.');
+    return;
+  }
+  
+  const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+  if (!re.test(password)) {
+    toast('Password does not meet the requirements.');
+    return;
+  }
+  
+  try {
+    const response = await fetch('http://localhost:5000/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        name, email, password, age, birthday, phone, role: 'user' 
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      toast(data.error || 'Registration failed');
+      return;
+    }
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    toast('Registration successful!');
+    launchApp(name, email, 'user');
+  } catch (error) {
+    toast('Connection error. Make sure server is running.');
+  }
 }
-
 function launchApp(name,email,role='user'){
   userName=name;userEmail=email;currentRole=role;
   loadStoredSafetyData();
