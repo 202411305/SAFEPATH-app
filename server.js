@@ -1,81 +1,61 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
-// CORS configuration - payagan ang Live Server
-app.use(cors({
-  origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Kunin ang Supabase credentials mula sa environment variables
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
-// Local MongoDB connection
-const MONGODB_URI = "mongodb://localhost:27017/safepath_db";
+// Check kung may laman ang environment variables
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('❌ ERROR: Missing SUPABASE_URL or SUPABASE_ANON_KEY');
+  process.exit(1);
+}
 
-// User Schema
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  age: Number,
-  birthday: Date,
-  phone: String,
-  status: { type: String, default: 'Online' },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const User = mongoose.model('User', userSchema);
-
-// Connect to MongoDB
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to Local MongoDB!');
-    console.log('Database:', mongoose.connection.db.databaseName);
-  })
-  .catch(err => console.error('❌ MongoDB error:', err.message));
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // REGISTER API
 app.post('/api/register', async (req, res) => {
   try {
-    const { name, email, password, age, birthday, phone, role } = req.body;
+    const { name, email, password, age, birthday, phone } = req.body;
     
-    const existingUser = await User.findOne({ email });
+    // Check if user exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email)
+      .single();
+    
     if (existingUser) {
       return res.status(400).json({ error: 'Email already exists' });
     }
     
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role: role || 'user',
-      age,
-      birthday,
-      phone
-    });
+    // Insert new user
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert([{ name, email, password: hashedPassword, age, birthday, phone }])
+      .select()
+      .single();
     
-    await user.save();
+    if (insertError) {
+      console.error('Insert error:', insertError);
+      return res.status(500).json({ error: insertError.message });
+    }
     
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      'my_super_secret_key_12345',
-      { expiresIn: '7d' }
-    );
-    
-    res.status(201).json({
-      token,
-      user: { id: user._id, name, email, role: user.role }
+    res.status(201).json({ 
+      success: true, 
+      user: { id: newUser.id, name: newUser.name, email: newUser.email } 
     });
   } catch (error) {
+    console.error('Register error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -83,9 +63,14 @@ app.post('/api/register', async (req, res) => {
 // LOGIN API
 app.post('/api/login', async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
     
-    const user = await User.findOne({ email });
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+    
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -95,32 +80,23 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     
-    if (role && user.role !== role) {
-      return res.status(401).json({ error: 'Wrong account type' });
-    }
-    
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      'my_super_secret_key_12345',
-      { expiresIn: '7d' }
-    );
-    
-    res.json({
-      token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    res.json({ 
+      success: true, 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role || 'user' } 
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // TEST API
 app.get('/', (req, res) => {
-  res.json({ message: 'SafePath API is running locally!' });
+  res.json({ message: 'SafePath API with Supabase is running!' });
 });
 
-// Start server
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Supabase URL: ${SUPABASE_URL ? 'Set' : 'Missing'}`);
 });
