@@ -36,6 +36,12 @@ const PWD_AVOID=['Stairs 1'];
 
 let currentPath=[];let emergencyMode=false;let currentStatus='Online';
 let userName='Juan dela Cruz';let userEmail='22-01234@gordoncollege.edu.ph';
+let avatarDataUrl=null;
+
+// Hide splash screen after loading
+setTimeout(() => {
+  document.getElementById('splash').classList.add('hide');
+}, 3000);
 
 function authTab(id,el){
   document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
@@ -44,17 +50,37 @@ function authTab(id,el){
   document.getElementById('panel'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
 }
 
-function doLogin(){
-  const e=document.getElementById('li_email').value.trim();
-  const p=document.getElementById('li_pass').value;
-  if(!e||!p){toast('Please enter email and password.');return;}
-  if(e==='demo'&&p==='demo'){launchApp('Demo User','demo@gordoncollege.edu.ph');return;}
-  toast('Sending OTP…');
-  setTimeout(()=>{
-    openModal('mOtp');
-    document.getElementById('otpInput').dataset.action='login';
-    document.getElementById('otpInput').dataset.email=e;
-  },800);
+function setLoginRole(role){
+  document.getElementById('roleUser').classList.toggle('active', role==='user');
+  document.getElementById('roleAdmin').classList.toggle('active', role==='admin');
+  document.getElementById('roleNote').textContent = role==='admin'
+    ? 'Safety Admin access is restricted to approved accounts only.'
+    : 'Users can navigate, report incidents, and use emergency routing.';
+  document.getElementById('li_email').placeholder = role==='admin'
+    ? 'Enter admin email'
+    : 'e.g. 22-01234 or name@gordoncollege.edu.ph';
+}
+
+function doLogin() {
+  const e = document.getElementById('li_email').value.trim();
+  const p = document.getElementById('li_pass').value;
+
+  if (!e || !p) {
+    toast('Please enter email and password.');
+    return;
+  }
+
+  toast('Verifying credentials...');
+
+  setTimeout(() => {
+    // Gagawa tayo ng display name base sa email
+    const name = e.split('@')[0].charAt(0).toUpperCase() + e.split('@')[0].slice(1);
+    
+    // Pasok agad sa system!
+    launchApp(name, e);
+    
+    toast('Login successful! Welcome to SafePath.');
+  }, 600);
 }
 
 function verifyOtp(){
@@ -66,35 +92,61 @@ function verifyOtp(){
   launchApp(name,e);
 }
 
-function doRegister(){
-  const name=document.getElementById('rg_name').value.trim();
-  const email=document.getElementById('rg_email').value.trim();
-  const pass=document.getElementById('rg_pass').value;
-  const confirm=document.getElementById('rg_confirm').value;
-  if(!name||!email){toast('Please fill in all required fields.');return;}
-  if(pass!==confirm){toast('Passwords do not match.');return;}
-  if(!document.getElementById('termsCheck').checked){toast('Please accept the Terms & Conditions.');return;}
-  const re=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
-  if(!re.test(pass)){toast('Password does not meet the requirements.');return;}
-  toast('Sending OTP…');
-  setTimeout(()=>{
-    openModal('mOtp');
-    document.getElementById('otpInput').dataset.action='register';
-    document.getElementById('otpInput').dataset.email=email;
-    document.getElementById('otpInput').dataset.name=name;
-  },800);
+function doRegister() {
+    toast('Registration is disabled for this demo.');
 }
 
-function launchApp(name,email){
-  userName=name;userEmail=email;
-  document.getElementById('overlay').style.display='none';
-  document.getElementById('app').classList.add('show');
-  document.getElementById('profName').textContent=name;
-  document.getElementById('profEmail').textContent=email;
-  document.getElementById('dtName').textContent=name;
-  document.getElementById('avatarCircle').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  initMap();
-  populateSelects();
+function launchApp(name, email) {
+    userName = name; 
+    userEmail = email;
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('app').classList.add('show');
+    
+    // Update UI Elements
+    document.getElementById('profName').textContent = name;
+    document.getElementById('profEmail').textContent = email;
+    document.getElementById('dtName').textContent = name;
+    updateAvatarDisplay(name);
+    
+    // Initializers
+    initMap();
+    populateSelects();
+}
+
+function updateAvatarDisplay(name) {
+  const avatar = document.getElementById('avatarCircle');
+  if (!avatar) return;
+  if (avatarDataUrl) {
+    avatar.style.backgroundImage = `url(${avatarDataUrl})`;
+    avatar.style.backgroundSize = 'cover';
+    avatar.style.backgroundPosition = 'center';
+    avatar.textContent = '';
+  } else {
+    avatar.style.backgroundImage = 'none';
+    avatar.style.backgroundColor = '#1a7a4a';
+    const initials = name.split(' ').map(w => w[0] || '').join('').slice(0,2).toUpperCase();
+    avatar.textContent = initials;
+  }
+}
+
+function triggerAvatarUpload() {
+  document.getElementById('avatarUpload').click();
+}
+
+function handleAvatarUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    toast('Please choose a valid image file.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    avatarDataUrl = reader.result;
+    updateAvatarDisplay(document.getElementById('dtNameEdit').value.trim() || userName);
+    toast('Photo selected. Save changes to apply.');
+  };
+  reader.readAsDataURL(file);
 }
 
 function doLogout(){

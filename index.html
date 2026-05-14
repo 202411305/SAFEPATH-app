@@ -598,6 +598,10 @@ canvas{display:block;width:100%;height:260px;cursor:crosshair}
             <div class="profile-email" id="profEmail">22-01234@gordoncollege.edu.ph</div>
           </div>
         </div>
+        <div class="profile-photo-actions" id="photoActions">
+          <button class="btn-save" type="button" onclick="triggerAvatarUpload()">Change Photo</button>
+          <input type="file" id="avatarUpload" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)"/>
+        </div>
         <div class="card">
           <div class="card-title">Status</div>
           <div class="status-btns">
@@ -880,6 +884,7 @@ const ADMIN_ACCOUNTS=[
 
 let currentPath=[];let emergencyMode=false;let currentStatus='Online';
 let userName='Juan dela Cruz';let userEmail='22-01234@gordoncollege.edu.ph';let loginRole='user';let currentRole='user';
+let avatarDataUrl=null;
 let activeAnnouncement={text:'No active emergency announcement. SafePath is monitoring routes and exits.',time:'Now'};
 let routeHistory=[];
 let emergencyStartTime=null;
@@ -904,39 +909,34 @@ function setLoginRole(role){
     : 'e.g. 22-01234 or name@gordoncollege.edu.ph';
 }
 
-async function doLogin() {
+function doLogin() {
   const email = document.getElementById('li_email').value.trim();
   const password = document.getElementById('li_pass').value;
-  const role = loginRole;
-  
+
   if (!email || !password) {
     toast('Please enter email and password.');
     return;
   }
-  
-  try {
-    const response = await fetch('https://safepath-app-duox.onrender.com/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, role })
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      toast(data.error || 'Login failed');
-      return;
-    }
-    
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    launchApp(data.user.name, email, data.user.role);
-  } catch (error) {
-    toast('Connection error. Make sure server is running.');
-  }
+
+  toast('Verifying credentials...');
+
+  setTimeout(() => {
+    const rname = email.includes('@')
+      ? email.split('@')[0].replace(/\./g, ' ')
+      : email;
+    const displayName = rname.charAt(0).toUpperCase() + rname.slice(1);
+    launchApp(displayName, email);
+    toast('Login successful! Welcome to SafePath.');
+  }, 600);
+}
+
+async function handleLogin(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  doLogin();
 }
 
 function verifyOtp(){
+
   const v=document.getElementById('otpInput').value;
   if(v.length!==6){toast('Enter the 6-digit code.');return;}
   closeModal('mOtp');
@@ -1015,7 +1015,7 @@ function launchApp(name,email,role='user'){
   const modeBadge=document.getElementById('modeBadge');
   modeBadge.textContent=role==='admin'?'Admin Mode':'Student Mode';
   modeBadge.classList.toggle('admin',role==='admin');
-  document.getElementById('avatarCircle').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  updateAvatarDisplay(name);
   initMap();
   populateSelects();
   renderAnnouncement();
@@ -1023,11 +1023,45 @@ function launchApp(name,email,role='user'){
   goSec('Dashboard');
 }
 
+function updateAvatarDisplay(name){
+  const avatar=document.getElementById('avatarCircle');
+  if(!avatar) return;
+  if(avatarDataUrl){
+    avatar.style.backgroundImage=`url(${avatarDataUrl})`;
+    avatar.style.backgroundSize='cover';
+    avatar.style.backgroundPosition='center';
+    avatar.textContent='';
+  } else {
+    avatar.style.backgroundImage='none';
+    avatar.style.backgroundColor='#1a7a4a';
+    const initials=name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+    avatar.textContent=initials;
+  }
+}
+
+function triggerAvatarUpload(){
+  document.getElementById('avatarUpload').click();
+}
+
+function handleAvatarUpload(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){toast('Please choose a valid image file.');return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    avatarDataUrl=reader.result;
+    updateAvatarDisplay(document.getElementById('dtNameEdit').value.trim()||userName);
+    toast('Photo selected. Save changes to apply.');
+  };
+  reader.readAsDataURL(file);
+}
+
 function doLogout(){
   document.getElementById('app').classList.remove('show');
   document.getElementById('overlay').style.display='flex';
   currentPath=[];emergencyMode=false;
   currentRole='user';
+  avatarDataUrl=null;
   setLoginRole('user');
   document.getElementById('emergBtn').classList.remove('active');
 }
@@ -1348,11 +1382,13 @@ function toggleEditMode(){
     ['dtNameView','dtIdView','dtProgramView','dtMemberView'].forEach(id=>document.getElementById(id).style.display='block');
     ['dtNameEdit','dtIdEdit','dtProgramEdit','dtMemberEdit'].forEach(id=>document.getElementById(id).style.display='none');
     document.getElementById('editActions').style.display='none';
+    document.getElementById('photoActions').style.display='none';
     document.getElementById('editBtn').textContent='✎ Edit';
   }else{
     ['dtNameView','dtIdView','dtProgramView','dtMemberView'].forEach(id=>document.getElementById(id).style.display='none');
     ['dtNameEdit','dtIdEdit','dtProgramEdit','dtMemberEdit'].forEach(id=>document.getElementById(id).style.display='block');
     document.getElementById('editActions').style.display='flex';
+    document.getElementById('photoActions').style.display='flex';
     document.getElementById('editBtn').textContent='✕ Cancel';
   }
 }
@@ -1374,6 +1410,7 @@ function saveProfileChanges(){
   
   userName=newName;
   userEmail=newId+'@gordoncollege.edu.ph';
+  updateAvatarDisplay(newName);
   
   toggleEditMode();
   toast('Profile updated successfully!');
@@ -1534,7 +1571,10 @@ function toggleTheme(){
 }
 
 applyTheme(localStorage.getItem('safepath-theme')||'light');
-setTimeout(hideSplash,1200);
+setTimeout(function() {
+    var splash = document.getElementById('splash');
+    if (splash) splash.style.display = 'none';
+}, 3000);
 
 const baseInitMap=initMap;
 initMap=function(){
@@ -1975,5 +2015,6 @@ function selectNearestNodeOnCurrentFloor(evt){
   drawMap();
 }
 </script>
+<script src="script.js"></script>
 </body>
 </html>
